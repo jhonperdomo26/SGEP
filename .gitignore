@@ -1,15 +1,44 @@
+# Directorios y archivos generados por Android Studio
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
+.gradle/
+local.properties
+*.hprof
+
+# Archivos de compilación
+/build/
+*/build/
+
+# Archivos de registro
+*.log
+
+# Dependencias descargadas automáticamente
+.externalNativeBuild/
+
+# Caché de IntelliJ
+/.idea/caches/
+/.idea/libraries/
 /.idea/modules.xml
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+
+# Configuración específica de Android Studio
+.idea/codeStyles/
+.idea/inspectionProfiles/
+
+# Archivos de sistemas operativos
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+Thumbs.db
+
+# Archivos específicos de Kotlin
+*.kotlin_module
+
+# Excluir configuraciones locales de Room (si aplica)
+room.db
+
+# Otros archivos no necesarios para el control de versiones
+*.bak
+*.tmp
+*.swp
+*.lock
