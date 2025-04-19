@@ -1,37 +1,36 @@
 package com.example.sgep.ui.view
 
-import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import com.example.sgep.viewmodel.LoginViewModel
-import com.example.sgep.viewmodel.LoginViewModelFactory
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen() {
-    val context = LocalContext.current
-
-    // ✅ Aquí se usa el Factory
-    val viewModel: LoginViewModel = viewModel(
-        factory = LoginViewModelFactory(context.applicationContext as Application)
-    )
-
+fun LoginScreen(
+    onRegisterClick: () -> Unit, // Callback para navegar a la pantalla de registro
+    onLoginSuccess: () -> Unit, // Callback para navegar a la pantalla de bienvenida
+    viewModel: LoginViewModel    // ViewModel proporcionado desde Navigation
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
     val loginMessage by viewModel.loginResult.collectAsState()
+
+    // Navegar a WelcomeScreen si el login es exitoso
+    LaunchedEffect(loginMessage) {
+        if (loginMessage == "Inicio de sesión exitoso") {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -40,8 +39,10 @@ fun LoginScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Mensaje de login (éxito o error)
         Text(text = loginMessage)
 
+        // Campo de correo electrónico
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -51,6 +52,7 @@ fun LoginScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Campo de contraseña con visibilidad alternable
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -67,14 +69,22 @@ fun LoginScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { viewModel.login(email, password) }, modifier = Modifier.fillMaxWidth()) {
+        // Botón para iniciar sesión
+        Button(
+            onClick = { viewModel.login(email, password) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Iniciar sesión")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { viewModel.register(email, password) }, modifier = Modifier.fillMaxWidth()) {
-            Text("Registrarse")
+        // Botón para navegar a la pantalla de registro
+        Button(
+            onClick = { onRegisterClick() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Registrar")
         }
     }
 }

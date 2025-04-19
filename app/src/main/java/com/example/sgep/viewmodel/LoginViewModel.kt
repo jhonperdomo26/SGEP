@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: UserRepository
-    private val _loginResult = MutableStateFlow<String>("")
+    private val _loginResult = MutableStateFlow("")
     val loginResult: StateFlow<String> = _loginResult
 
     init {
