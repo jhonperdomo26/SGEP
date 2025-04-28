@@ -6,18 +6,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.sgep.viewmodel.LoginViewModel
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.sgep.viewmodel.LoginViewModel
 
 @Composable
 fun RegisterScreen(
     viewModel: LoginViewModel,
     onBack: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var registrationMessage by remember { mutableStateOf("") }
+    var nombre by remember { mutableStateOf("") }
+    var correo by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
+    var confirmarContraseña by remember { mutableStateOf("") }
+    var pesoActual by remember { mutableStateOf("") }
+    var estatura by remember { mutableStateOf("") }
+    var objetivo by remember { mutableStateOf("") }
+
+    val mensajeRegistro by viewModel.registerResult.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -26,11 +32,27 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = registrationMessage)
+        if (mensajeRegistro.isNotEmpty()) {
+            Text(
+                text = mensajeRegistro,
+                color = if (mensajeRegistro.contains("exitosamente")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
+            value = nombre,
+            onValueChange = { nombre = it },
+            label = { Text("Nombre Completo") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = correo,
+            onValueChange = { correo = it },
             label = { Text("Correo Electrónico") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -38,8 +60,8 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = contraseña,
+            onValueChange = { contraseña = it },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
@@ -48,10 +70,37 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            value = confirmarContraseña,
+            onValueChange = { confirmarContraseña = it },
             label = { Text("Confirmar Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = pesoActual,
+            onValueChange = { pesoActual = it },
+            label = { Text("Peso Actual (opcional)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = estatura,
+            onValueChange = { estatura = it },
+            label = { Text("Estatura (opcional)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = objetivo,
+            onValueChange = { objetivo = it },
+            label = { Text("Objetivo Personal (opcional)") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -59,11 +108,19 @@ fun RegisterScreen(
 
         Button(
             onClick = {
-                if (password == confirmPassword) {
-                    viewModel.register(email, password)
-                    registrationMessage = "Usuario registrado exitosamente"
+                if (contraseña != confirmarContraseña) {
+                    viewModel.updateRegisterErrorMessage("Las contraseñas no coinciden")
                 } else {
-                    registrationMessage = "Las contraseñas no coinciden"
+                    val peso = pesoActual.toDoubleOrNull()
+                    val altura = estatura.toDoubleOrNull()
+                    viewModel.register(
+                        nombre = nombre,
+                        email = correo,
+                        password = contraseña,
+                        pesoActual = peso,
+                        estatura = altura,
+                        objetivo = objetivo
+                    )
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -77,7 +134,7 @@ fun RegisterScreen(
             onClick = { onBack() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Volver al inicio de sesión")
+            Text("Volver")
         }
     }
 }

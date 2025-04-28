@@ -11,23 +11,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.sgep.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onRegisterClick: () -> Unit, // Callback para navegar a la pantalla de registro
-    onLoginSuccess: () -> Unit, // Callback para navegar a la pantalla de bienvenida
-    viewModel: LoginViewModel    // ViewModel proporcionado desde Navigation
+    onRegisterClick: () -> Unit,
+    onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    var correo by remember { mutableStateOf("") }
+    var contraseña by remember { mutableStateOf("") }
+    var contraseñaVisible by remember { mutableStateOf(false) }
 
-    val loginMessage by viewModel.loginResult.collectAsState()
+    val mensajeLogin by viewModel.loginResult.collectAsStateWithLifecycle()
 
-    // Navegar a WelcomeScreen si el login es exitoso
-    LaunchedEffect(loginMessage) {
-        if (loginMessage == "Inicio de sesión exitoso") {
+    LaunchedEffect(mensajeLogin) {
+        if (mensajeLogin == "Inicio de sesión exitoso") {
             onLoginSuccess()
         }
     }
@@ -39,29 +39,33 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Mensaje de login (éxito o error)
-        Text(text = loginMessage)
+        if (mensajeLogin.isNotEmpty()) {
+            Text(
+                text = mensajeLogin,
+                color = if (mensajeLogin.contains("éxito")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            )
+        }
 
-        // Campo de correo electrónico
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo") },
+            value = correo,
+            onValueChange = { correo = it },
+            label = { Text("Correo Electrónico") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Campo de contraseña con visibilidad alternable
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = contraseña,
+            onValueChange = { contraseña = it },
             label = { Text("Contraseña") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (contraseñaVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = icon, contentDescription = "Toggle password visibility")
+                val icon = if (contraseñaVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = { contraseñaVisible = !contraseñaVisible }) {
+                    Icon(imageVector = icon, contentDescription = "Alternar visibilidad de contraseña")
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -69,9 +73,8 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para iniciar sesión
         Button(
-            onClick = { viewModel.login(email, password) },
+            onClick = { viewModel.login(correo, contraseña) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Iniciar sesión")
@@ -79,7 +82,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Botón para navegar a la pantalla de registro
         Button(
             onClick = { onRegisterClick() },
             modifier = Modifier.fillMaxWidth()
