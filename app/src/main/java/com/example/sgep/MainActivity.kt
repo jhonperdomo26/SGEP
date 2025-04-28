@@ -14,10 +14,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                // Crear instancia del LoginViewModel utilizando viewModel(...)
+                // Crear instancia del LoginViewModel utilizando LoginViewModelFactory
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(application)
                 )
+
                 // Pasar loginViewModel a la función Navigation
                 Navigation(viewModel = loginViewModel)
             }

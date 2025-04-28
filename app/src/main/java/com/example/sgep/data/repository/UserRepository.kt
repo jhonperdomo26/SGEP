@@ -2,14 +2,65 @@ package com.example.sgep.data.repository
 
 import com.example.sgep.data.dao.UserDao
 import com.example.sgep.data.entity.UserEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 
 class UserRepository(private val userDao: UserDao) {
-    suspend fun registerUser(email: String, password: String) {
-        val user = UserEntity(email = email, password = password)
-        userDao.registerUser(user)
+
+    /**
+     * Valida las credenciales de inicio de sesión.
+     *
+     * @param email Correo electrónico del usuario.
+     * @param password Contraseña sin hashear.
+     * @return `true` si las credenciales son válidas, de lo contrario `false`.
+     */
+    suspend fun validateLogin(email: String, password: String): Boolean {
+        val user = userDao.getUserByEmail(email)
+        // Simula la validación de la contraseña hasheada, reemplázalo con tu lógica real de hash.
+        return user != null && user.contraseñaHash == password.hashCode().toString()
     }
 
-    suspend fun login(email: String, password: String): UserEntity? {
-        return userDao.login(email, password)
+    /**
+     * Registra un nuevo usuario en la base de datos.
+     *
+     * @param nombre Nombre del usuario.
+     * @param email Correo electrónico del usuario.
+     * @param password Contraseña sin hashear.
+     * @param pesoActual (Opcional) Peso actual del usuario.
+     * @param estatura (Opcional) Estatura del usuario.
+     * @param objetivo Objetivo del usuario.
+     * @return Resultado de la operación: Success o Failure.
+     */
+    suspend fun registerUser(
+        nombre: String,
+        email: String,
+        password: String,
+        pesoActual: Double?,
+        estatura: Double?,
+        objetivo: String
+    ): Result<Long> {
+        if (email.isBlank() || password.isBlank() || nombre.isBlank()) {
+            return Result.failure(Exception("Los campos nombre, email y contraseña son obligatorios."))
+        }
+        val existingUser = userDao.getUserByEmail(email)
+        if (existingUser != null) {
+            return Result.failure(Exception("El usuario ya está registrado."))
+        }
+        val user = UserEntity(
+            nombre = nombre,
+            email = email,
+            contraseñaHash = password.hashCode().toString(), // Almacena el hash de la contraseña
+            pesoActual = pesoActual,
+            estatura = estatura,
+            objetivo = objetivo
+        )
+        return try {
+            val userId = userDao.registerUser(user)
+            Result.success(userId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
