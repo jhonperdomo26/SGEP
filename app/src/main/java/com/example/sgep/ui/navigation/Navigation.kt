@@ -1,5 +1,6 @@
 package com.example.sgep.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -9,6 +10,7 @@ import com.example.sgep.ui.view.LoginScreen
 import com.example.sgep.ui.view.RegisterScreen
 import com.example.sgep.ui.view.WelcomeScreen
 import com.example.sgep.viewmodel.LoginViewModel
+import com.example.sgep.data.entity.UserEntity
 
 object Routes {
     const val LOGIN = "login"
@@ -21,30 +23,37 @@ fun Navigation(viewModel: LoginViewModel) {
     val navController: NavHostController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
-        // Ruta para LoginScreen
         composable(Routes.LOGIN) {
             LoginScreen(
                 onRegisterClick = { navController.navigate(Routes.REGISTER) },
-                onLoginSuccess = {
+                onLoginSuccess = { user ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
+                    Log.d("Navigation", "Navegando a WelcomeScreen con usuario: ${user.nombre}")
                     navController.navigate(Routes.WELCOME) {
-                        popUpTo(Routes.LOGIN) { inclusive = true } // Limpia el stack
+                        popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
                 viewModel = viewModel
             )
         }
-        // Ruta para RegisterScreen
         composable(Routes.REGISTER) {
             RegisterScreen(
                 viewModel = viewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onRegisterSuccess = { navController.navigate(Routes.LOGIN) }
             )
         }
-        // Ruta para WelcomeScreen
         composable(Routes.WELCOME) {
+            val user = navController.previousBackStackEntry?.savedStateHandle?.get<UserEntity>("user")
+            Log.d("Navigation", "Usuario recibido en WelcomeScreen: $user")
             WelcomeScreen(
-                user = TODO(),
-                onLogout = TODO()
+                user = user,
+                onLogout = {
+                    viewModel.logout()
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.WELCOME) { inclusive = true }
+                    }
+                }
             )
         }
     }

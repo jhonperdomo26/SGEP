@@ -2,12 +2,18 @@ package com.example.sgep.data.repository
 
 import com.example.sgep.data.dao.UserDao
 import com.example.sgep.data.entity.UserEntity
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class UserRepository(private val userDao: UserDao) {
+
+    /**
+     * Obtiene un usuario por su correo electrónico.
+     *
+     * @param email Correo electrónico del usuario.
+     * @return El usuario encontrado o `null` si no existe.
+     */
+    suspend fun getUserByEmail(email: String): UserEntity? {
+        return userDao.getUserByEmail(email)
+    }
 
     /**
      * Valida las credenciales de inicio de sesión.

@@ -1,5 +1,6 @@
 package com.example.sgep.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -9,7 +10,9 @@ import androidx.compose.ui.unit.dp
 import com.example.sgep.data.entity.UserEntity
 
 @Composable
-fun WelcomeScreen(user: UserEntity, onLogout: () -> Unit) {
+fun WelcomeScreen(user: UserEntity?, onLogout: () -> Unit) {
+    Log.d("WelcomeScreen", "Renderizando WelcomeScreen con usuario: ${user?.nombre}")
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -24,12 +27,12 @@ fun WelcomeScreen(user: UserEntity, onLogout: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Hola, ${user.nombre}",
+                text = "Hola, ${user?.nombre ?: "Usuario"}",
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Tu objetivo: ${user.objetivo}",
+                text = "Tu objetivo: ${user?.objetivo ?: "No definido"}",
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.height(24.dp))

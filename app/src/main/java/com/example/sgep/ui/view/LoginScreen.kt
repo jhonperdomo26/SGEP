@@ -1,34 +1,46 @@
 package com.example.sgep.ui.view
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.sgep.viewmodel.LoginViewModel
+import com.example.sgep.data.entity.UserEntity
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit,
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UserEntity) -> Unit,
     viewModel: LoginViewModel
 ) {
-    var correo by remember { mutableStateOf("") }
-    var contraseña by remember { mutableStateOf("") }
-    var contraseñaVisible by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
-    val mensajeLogin by viewModel.loginResult.collectAsStateWithLifecycle()
+    val loginMessage by viewModel.loginResult.collectAsStateWithLifecycle()
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
 
-    LaunchedEffect(mensajeLogin) {
-        if (mensajeLogin == "Inicio de sesión exitoso") {
-            onLoginSuccess()
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(loginMessage, currentUser) {
+        val user = currentUser // Asignar a una variable local para el smart cast
+        if (loginMessage == "Inicio de sesión exitoso" && user != null) {
+            Log.d("LoginScreen", "Condición cumplida: Navegando a WelcomeScreen con usuario: ${user.nombre}")
+            delay(1000)
+            onLoginSuccess(user)
+        } else {
+            Log.d("LoginScreen", "Condición no cumplida - loginMessage: $loginMessage, currentUser: $currentUser")
         }
     }
 
@@ -39,18 +51,21 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (mensajeLogin.isNotEmpty()) {
+        if (loginMessage.isNotEmpty()) {
             Text(
-                text = mensajeLogin,
-                color = if (mensajeLogin.contains("éxito")) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                text = loginMessage,
+                color = if (loginMessage.contains("éxito", ignoreCase = true))
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.error
             )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = correo,
-            onValueChange = { correo = it },
+            value = email,
+            onValueChange = { email = it },
             label = { Text("Correo Electrónico") },
             modifier = Modifier.fillMaxWidth()
         )
@@ -58,14 +73,14 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = contraseña,
-            onValueChange = { contraseña = it },
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Contraseña") },
-            visualTransformation = if (contraseñaVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                val icon = if (contraseñaVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                IconButton(onClick = { contraseñaVisible = !contraseñaVisible }) {
-                    Icon(imageVector = icon, contentDescription = "Alternar visibilidad de contraseña")
+                val icon = if (isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(imageVector = icon, contentDescription = "Alternar visibilidad de la contraseña")
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -74,7 +89,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.login(correo, contraseña) },
+            onClick = {
+                coroutineScope.launch {
+                    viewModel.login(email, password)
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Iniciar sesión")
