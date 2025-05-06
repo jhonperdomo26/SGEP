@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.sgep.data.dao.UserDao
 import com.example.sgep.data.entity.UserEntity
 
-@Database(entities = [UserEntity::class], version = 2, exportSchema = false)
+@Database(entities = [UserEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
