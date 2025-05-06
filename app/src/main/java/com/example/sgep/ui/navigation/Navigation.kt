@@ -8,14 +8,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.sgep.ui.view.LoginScreen
 import com.example.sgep.ui.view.RegisterScreen
-import com.example.sgep.ui.view.WelcomeScreen
+import com.example.sgep.ui.view.MainScreen
 import com.example.sgep.viewmodel.LoginViewModel
 import com.example.sgep.data.entity.UserEntity
 
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val WELCOME = "welcome"
+    const val MAIN = "main"
 }
 
 @Composable
@@ -28,8 +28,8 @@ fun Navigation(viewModel: LoginViewModel) {
                 onRegisterClick = { navController.navigate(Routes.REGISTER) },
                 onLoginSuccess = { user ->
                     navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
-                    Log.d("Navigation", "Navegando a WelcomeScreen con usuario: ${user.nombre}")
-                    navController.navigate(Routes.WELCOME) {
+                    Log.d("Navigation", "Navegando a MainScreen con usuario: ${user.nombre}")
+                    navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
@@ -43,15 +43,15 @@ fun Navigation(viewModel: LoginViewModel) {
                 onRegisterSuccess = { navController.navigate(Routes.LOGIN) }
             )
         }
-        composable(Routes.WELCOME) {
+        composable(Routes.MAIN) {
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<UserEntity>("user")
-            Log.d("Navigation", "Usuario recibido en WelcomeScreen: $user")
-            WelcomeScreen(
+            Log.d("Navigation", "Usuario recibido en MainScreen: $user")
+            MainScreen(
                 user = user,
                 onLogout = {
                     viewModel.logout()
                     navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.WELCOME) { inclusive = true }
+                        popUpTo(Routes.MAIN) { inclusive = true }
                     }
                 }
             )

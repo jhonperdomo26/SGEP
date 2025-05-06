@@ -3,6 +3,7 @@ package com.example.sgep.data.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.sgep.data.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -44,4 +45,17 @@ interface UserDao {
      */
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     fun getUserFlowByEmail(email: String): Flow<UserEntity?>
+
+    /**
+     * Obtiene el usuario actualmente logeado (último usuario insertado)
+     * Útil para flujos de autenticación persistente
+     */
+    @Query("SELECT * FROM users ORDER BY id DESC LIMIT 1")
+    fun getCurrentUser(): Flow<UserEntity?>
+
+    /**
+     * Actualiza los datos del usuario
+     */
+    @Update
+    suspend fun updateUser(user: UserEntity): Int
 }
