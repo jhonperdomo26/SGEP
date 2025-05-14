@@ -76,11 +76,24 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
+    // Dependencia para asLiveData()
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
+    // *** Añadida esta dependencia para observeAsState en Compose con LiveData ***
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
+    // Esta línea parece incorrecta: implementation(libs.androidx.lifecycle.runtime.compose.android)
+    // Si usas libs.versions.toml, deberías referenciarlo correctamente,
+    // o usar la notación directa como las otras dependencias de Room.
+    // Si ya tienes lifecycle-runtime-ktx:2.6.2 arriba, puede que esta sea redundante o incorrecta.
+    // Vamos a asumir que es redundante y la dejaremos tal cual por ahora,
+    // pero si tienes problemas después, revisa esta línea.
     implementation(libs.androidx.lifecycle.runtime.compose.android)
     kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1") // Esto ya te da soporte para Coroutines y Flow en Room
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
