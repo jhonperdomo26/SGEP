@@ -4,12 +4,33 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.sgep.data.dao.UserDao
-import com.example.sgep.data.entity.UserEntity
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.sgep.data.dao.*
+import com.example.sgep.data.entity.*
 
-@Database(entities = [UserEntity::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        UserEntity::class,
+        RutinaEntity::class,
+        EjercicioPredefinidoEntity::class,
+        EjercicioEnRutinaEntity::class,
+        SerieEjercicioEntity::class,
+        SesionRutinaEntity::class,
+        RegistroSerieSesionEntity::class
+    ],
+    version = 3,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
+
+    // DAOs
     abstract fun userDao(): UserDao
+    abstract fun rutinaDao(): RutinaDao
+    abstract fun ejercicioPredefinidoDao(): EjercicioPredefinidoDao
+    abstract fun ejercicioEnRutinaDao(): EjercicioEnRutinaDao
+    abstract fun serieEjercicioDao(): SerieEjercicioDao
+    abstract fun sesionRutinaDao(): SesionRutinaDao
+    abstract fun registroSerieSesionDao(): RegistroSerieSesionDao
 
     companion object {
         @Volatile
@@ -22,8 +43,15 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "sgep_database"
                 )
-                .fallbackToDestructiveMigration()
-                .build()
+                    .addCallback(object : Callback() {
+                        override fun onOpen(db: SupportSQLiteDatabase) {
+                            super.onOpen(db)
+                            // Activar claves foráneas en SQLite
+                            db.execSQL("PRAGMA foreign_keys=ON;")
+                        }
+                    })
+                    .fallbackToDestructiveMigration() // útil para desarrollo
+                    .build()
                 INSTANCE = instance
                 instance
             }
