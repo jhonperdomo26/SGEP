@@ -24,7 +24,7 @@ class UserRepository(private val userDao: UserDao) {
      */
     suspend fun validateLogin(email: String, password: String): Boolean {
         val user = userDao.getUserByEmail(email)
-        // Simula la validación de la contraseña hasheada, reemplázalo con tu lógica real de hash.
+        // Simula la validación de la contraseña hasheada, reemplázalo con la lógica real de hash.
         return user != null && user.contraseñaHash == password.hashCode().toString()
     }
 

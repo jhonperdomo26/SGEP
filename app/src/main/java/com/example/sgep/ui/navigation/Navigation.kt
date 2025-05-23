@@ -10,16 +10,25 @@ import com.example.sgep.ui.view.LoginScreen
 import com.example.sgep.ui.view.RegisterScreen
 import com.example.sgep.ui.view.MainScreen
 import com.example.sgep.viewmodel.LoginViewModel
+import com.example.sgep.viewmodel.RutinaViewModel
 import com.example.sgep.data.entity.UserEntity
 
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val MAIN = "main"
+    // Las rutas internas (rutinas, detalles, etc.) se manejan dentro de MainScreen
 }
 
+/**
+ * Navigation: NavHost principal de la app. Solo maneja login, registro y main.
+ * El RutinaViewModel se pasa desde aquí para que esté disponible en MainScreen y sus pantallas hijas.
+ */
 @Composable
-fun Navigation(viewModel: LoginViewModel) {
+fun Navigation(
+    viewModel: LoginViewModel,
+    rutinaViewModel: RutinaViewModel // <- Agregado aquí
+) {
     val navController: NavHostController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
@@ -44,8 +53,10 @@ fun Navigation(viewModel: LoginViewModel) {
             )
         }
         composable(Routes.MAIN) {
+            // Recuperar el usuario desde el back stack (como ya lo hacías)
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<UserEntity>("user")
             Log.d("Navigation", "Usuario recibido en MainScreen: $user")
+            // Pasa el rutinaViewModel a MainScreen
             MainScreen(
                 user = user,
                 onLogout = {
@@ -53,7 +64,8 @@ fun Navigation(viewModel: LoginViewModel) {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.MAIN) { inclusive = true }
                     }
-                }
+                },
+                rutinaViewModel = rutinaViewModel
             )
         }
     }
