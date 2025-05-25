@@ -103,4 +103,6 @@ dependencies {
 
     implementation("org.mindrot:jbcrypt:0.4")
 
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -12,11 +13,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sgep.data.entity.RutinaEntity
 import com.example.sgep.data.entity.EjercicioEnRutinaEntity
 import com.example.sgep.data.entity.EjercicioPredefinidoEntity
 import com.example.sgep.viewmodel.RutinaViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +36,7 @@ fun DetalleRutinaScreen(
     onBack: () -> Unit,
     onIniciarSesion: () -> Unit,
     navController: NavController
-    ){
+) {
     var showAgregarDialog by remember { mutableStateOf(false) }
     var ejercicioSeleccionadoId by remember { mutableStateOf<Int?>(null) }
 
@@ -52,90 +58,116 @@ fun DetalleRutinaScreen(
         }
     ) { innerPadding ->
         Column(
-            Modifier
+            modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            // Información básica de la rutina
+            val fechaFormateada = SimpleDateFormat("dd 'de' MMMM 'de' yyyy", Locale("es", "ES"))
+                .format(Date(rutina.fechaCreacion))
+            // Información de la rutina
             Text(
-                text = "Fecha de creación: ${rutina.fechaCreacion}",
-                style = MaterialTheme.typography.bodyMedium
+                text = "Fecha de creación: $fechaFormateada",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Ejercicios de la rutina:",
-                style = MaterialTheme.typography.titleMedium
+                text = "Ejercicios de la rutina",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
-            // Lista de ejercicios en la rutina
+            // Lista de ejercicios
             Box(
-                Modifier
+                modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
                 if (ejerciciosEnRutina.isEmpty()) {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No hay ejercicios en esta rutina.")
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "No hay ejercicios en esta rutina.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 } else {
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(ejerciciosEnRutina) { ejercicioEnRutina ->
                             val ejercicio = ejerciciosPredefinidos.find { it.id == ejercicioEnRutina.ejercicioPredefinidoId }
+
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
                                     .clickable {
-                                        val encodedNombre = java.net.URLEncoder.encode(ejercicio?.nombre ?: "Ejercicio", "UTF-8")
+                                        val encodedNombre = java.net.URLEncoder.encode(
+                                            ejercicio?.nombre ?: "Ejercicio",
+                                            "UTF-8"
+                                        )
                                         navController.navigate("estadisticas_ejercicio/${ejercicioEnRutina.id}/$encodedNombre")
-                                    }
+                                    },
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
                                 Row(
-                                    Modifier
+                                    modifier = Modifier
                                         .padding(16.dp)
                                         .fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = ejercicio?.nombre ?: "Ejercicio ID: ${ejercicioEnRutina.ejercicioPredefinidoId}",
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.titleMedium
                                     )
                                 }
                             }
                         }
-                        // Espaciado final extra para no tapar el último ítem con los botones
+
                         item { Spacer(modifier = Modifier.height(32.dp)) }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Button(
                     onClick = { showAgregarDialog = true },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
-                    Text("Agregar ejercicio")
+                    Text(
+                        "Agregar ejercicio",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 Button(
                     onClick = { onIniciarSesion() },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
-                    Text("Iniciar sesión de entrenamiento")
+                    Text(
+                        "Iniciar sesión",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }
     }
 
-    // AlertDialog para agregar ejercicio predefinido a la rutina
+    // AlertDialog para agregar ejercicio
     if (showAgregarDialog) {
         AlertDialog(
             onDismissRequest = { showAgregarDialog = false },
@@ -159,24 +191,41 @@ fun DetalleRutinaScreen(
                 }
             },
             title = {
-                Text("Agregar ejercicio predefinido")
+                Text(
+                    "Agregar ejercicio predefinido",
+                    style = MaterialTheme.typography.titleLarge
+                )
             },
             text = {
-                Box(Modifier.heightIn(max = 300.dp)) { // Limita la altura si hay muchos ejercicios
-                    LazyColumn {
+                Box(
+                    Modifier
+                        .heightIn(max = 300.dp)
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
                         items(ejerciciosPredefinidos) { ejercicio ->
-                            Row(
-                                Modifier
+                            Surface(
+                                tonalElevation = 2.dp,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
                                         ejercicioSeleccionadoId = ejercicio.id
                                     }
-                                    .padding(8.dp)
                             ) {
-                                Text(
-                                    text = ejercicio.nombre,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = ejercicio.nombre,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                             }
                         }
                     }
