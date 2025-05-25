@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RutinasScreen(
+    userId: Int,
     rutinaViewModel: RutinaViewModel,
     onRutinaSeleccionada: (RutinaEntity) -> Unit,
     onIniciarSesion: (rutinaId: Int) -> Unit
@@ -178,7 +179,7 @@ fun RutinasScreen(
                 confirmButton = {
                     Button(
                         onClick = {
-                            rutinaViewModel.crearRutina(nombreRutina)
+                            rutinaViewModel.crearRutina(nombreRutina, userId)
                             nombreRutina = ""
                             showDialog = false
                         },

@@ -12,15 +12,25 @@ class RutinaRepository(
     private val serieEjercicioDao: SerieEjercicioDao,
     private val ejercicioPredefinidoDao: EjercicioPredefinidoDao
 ) {
-    // Crear una nueva rutina
-    suspend fun crearRutina(nombre: String): Long =
-        rutinaDao.insertRutina(RutinaEntity(nombre = nombre))
+    // Crear una nueva rutina para un usuario específico
+    suspend fun crearRutina(nombre: String, userId: Int): Long =
+        rutinaDao.insertRutina(RutinaEntity(nombre = nombre, userId = userId))
 
     // Obtener todas las rutinas
-    suspend fun obtenerRutinas(): List<RutinaEntity> = rutinaDao.getAllRutinas()
+    suspend fun obtenerRutinas(): List<RutinaEntity> =
+        rutinaDao.getAllRutinas()
+
+    // Obtener una rutina específica por ID
+    suspend fun obtenerRutinaPorId(rutinaId: Int): RutinaEntity? =
+        rutinaDao.getRutinaById(rutinaId)
+
+    // ✅ Obtener rutinas de un usuario específico
+    suspend fun obtenerRutinasPorUsuario(userId: Int): List<RutinaEntity> =
+        rutinaDao.getRutinasByUserId(userId)
 
     // Eliminar una rutina
-    suspend fun eliminarRutina(rutina: RutinaEntity) = rutinaDao.deleteRutina(rutina)
+    suspend fun eliminarRutina(rutina: RutinaEntity) =
+        rutinaDao.deleteRutina(rutina)
 
     // Obtener todos los ejercicios predefinidos
     suspend fun obtenerEjerciciosPredefinidos(): List<EjercicioPredefinidoEntity> =
@@ -29,7 +39,10 @@ class RutinaRepository(
     // Agregar un ejercicio a una rutina
     suspend fun agregarEjercicioARutina(rutinaId: Int, ejercicioPredefinidoId: Int): Long =
         ejercicioEnRutinaDao.insert(
-            EjercicioEnRutinaEntity(rutinaId = rutinaId, ejercicioPredefinidoId = ejercicioPredefinidoId)
+            EjercicioEnRutinaEntity(
+                rutinaId = rutinaId,
+                ejercicioPredefinidoId = ejercicioPredefinidoId
+            )
         )
 
     // Obtener los ejercicios de una rutina
@@ -38,7 +51,11 @@ class RutinaRepository(
 
     // Agregar una serie a un ejercicio en rutina
     suspend fun agregarSerie(
-        ejercicioEnRutinaId: Int, numeroSerie: Int, peso: Float, repeticiones: Int, descanso: Int
+        ejercicioEnRutinaId: Int,
+        numeroSerie: Int,
+        peso: Float,
+        repeticiones: Int,
+        descanso: Int
     ): Long =
         serieEjercicioDao.insert(
             SerieEjercicioEntity(

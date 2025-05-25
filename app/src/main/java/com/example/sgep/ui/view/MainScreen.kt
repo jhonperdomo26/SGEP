@@ -101,6 +101,7 @@ fun NavigationHost(
         composable(Screen.Rutinas.route) {
             RutinasScreen(
                 rutinaViewModel = rutinaViewModel,
+                userId = userId,
                 onRutinaSeleccionada = { rutina ->
                     navController.navigate("detalle_rutina/${rutina.id}")
                 },
@@ -158,7 +159,7 @@ fun NavigationHost(
                         rutinaViewModel.agregarEjercicioARutina(it.id, ejercicioId)
                     },
                     onEliminarRutina = {
-                        rutinaViewModel.eliminarRutina(it) {
+                        rutinaViewModel.eliminarRutina(it, userId) {
                             navController.popBackStack()
                         }
                     },

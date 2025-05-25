@@ -53,7 +53,6 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Header
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -68,11 +67,20 @@ fun WelcomeScreen(
                 )
             }
 
-            // Contenido principal
+            // Espaciador para empujar el contenido al centro
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Contenido principal centrado
             UserInfoSection(user = currentUser ?: user)
 
+            // Espaciador para balancear con el botón
+            Spacer(modifier = Modifier.weight(1f))
+
             // Footer con botón
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Divider(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     modifier = Modifier

@@ -15,6 +15,7 @@ import com.example.sgep.viewmodel.RutinaViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrearRutinaScreen(
+    userId: Int,
     rutinaViewModel: RutinaViewModel,
     onRutinaCreada: () -> Unit
 ) {
@@ -41,7 +42,7 @@ fun CrearRutinaScreen(
         Button(
             onClick = {
                 if (nombreRutina.isNotBlank()) {
-                    rutinaViewModel.crearRutina(nombreRutina)
+                    rutinaViewModel.crearRutina(nombreRutina, userId)  // <-- Aquí pasas el userId
                     nombreRutina = ""
                     onRutinaCreada()
                 }

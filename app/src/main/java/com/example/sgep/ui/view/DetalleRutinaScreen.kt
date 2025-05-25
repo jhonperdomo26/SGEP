@@ -156,7 +156,6 @@ fun DetalleRutinaScreen(
                 Button(
                     onClick = { onIniciarSesion() },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     contentPadding = PaddingValues(vertical = 12.dp)
                 ) {
                     Text(
