@@ -1,89 +1,126 @@
-package com.example.sgep.ui.view // Asegúrate de que este paquete sea correcto
+package com.example.sgep.ui.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn // Importa LazyColumn
-import androidx.compose.foundation.lazy.items // Importa items para LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card // Puedes usar Card para cada elemento de la lista
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider // Opcional, para separar elementos
-import androidx.compose.material3.ExperimentalMaterial3Api // Si usas clics en Cards
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue // Importa getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.example.sgep.data.entity.RutinaEntity
-import com.example.sgep.viewmodel.EjercicioViewModel
+import com.example.sgep.viewmodel.RutinaViewModel
 
+/**
+ * Pantalla principal para mostrar todas las rutinas, crear nuevas
+ * y permitir iniciar una sesión de entrenamiento.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RutinasScreen(
-    navController: NavHostController,
-    ejercicioViewModel: EjercicioViewModel
+    rutinaViewModel: RutinaViewModel,
+    onRutinaSeleccionada: (RutinaEntity) -> Unit,
+    onIniciarSesion: (rutinaId: Int) -> Unit
 ) {
-    // *** Observa la lista de rutinas del ViewModel ***
-    val rutinas: List<RutinaEntity> by ejercicioViewModel.todasLasRutinas.observeAsState(emptyList()) // Observa el LiveData
+    val rutinas by rutinaViewModel.rutinas.collectAsState()
+    val mensaje by rutinaViewModel.mensaje.collectAsState()
+    var nombreRutina by remember { mutableStateOf("") }
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Cargar rutinas al entrar en la pantalla
+    LaunchedEffect(Unit) {
+        rutinaViewModel.cargarRutinas()
+    }
+
+    // Mostrar snackbar con mensajes de feedback
+    if (mensaje != null) {
+        Snackbar(
+            modifier = Modifier.padding(8.dp),
+            action = {
+                TextButton(onClick = { rutinaViewModel.limpiarMensaje() }) { Text("OK") }
+            }
+        ) { Text(mensaje!!) }
+    }
 
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top // Cambiado a Top para que la lista empiece arriba
+            .padding(16.dp)
     ) {
-        Text(text = "Tus Rutinas", style = MaterialTheme.typography.headlineMedium)
+        // Título
+        Text(
+            text = "Mis Rutinas",
+            style = MaterialTheme.typography.headlineSmall
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para crear nueva rutina (se mantiene arriba)
-        Button(onClick = { navController.navigate("crearRutina") }) {
-            Text("Crear Nueva Rutina")
+        // Botón para crear nueva rutina
+        Button(onClick = { showDialog = true }) {
+            Text("Crear nueva rutina")
         }
-        Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el botón y la lista
 
-        // *** Mostrar la lista de rutinas ***
-        if (rutinas.isEmpty()) {
-            Text("Aún no tienes rutinas guardadas.", style = MaterialTheme.typography.bodyMedium)
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp) // Opcional, añadir algo de padding
-            ) {
-                items(rutinas) { rutina ->
-                    // Representación simple de cada rutina
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp), // Espacio entre tarjetas
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        onClick = {
-                            // TODO: Implementar navegación para ver/editar la rutina
-                            // navController.navigate("verRutina/${rutina.id}")
-                        }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Lista de rutinas existentes
+        LazyColumn(
+            Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(rutinas) { rutina ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onRutinaSeleccionada(rutina) }
+                        .padding(4.dp)
+                ) {
+                    Row(
+                        Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = rutina.nombre,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = "Fecha: ${rutina.fechaCreacion}", // Muestra la fecha
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            // Aquí podrías añadir un resumen de ejercicios si es relevante
+                        Text(
+                            text = rutina.nombre,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Button(onClick = { onIniciarSesion(rutina.id) }) {
+                            Text("Iniciar sesión")
                         }
                     }
-                    // Opcional: Un divisor entre elementos si no usas tarjetas con padding
-                    // Divider()
                 }
             }
         }
     }
-}
 
-// *** Eliminada la función PerfilScreen de este archivo ***
+    // Diálogo para ingresar el nombre de una nueva rutina
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Nueva Rutina") },
+            text = {
+                OutlinedTextField(
+                    value = nombreRutina,
+                    onValueChange = { nombreRutina = it },
+                    label = { Text("Nombre de la rutina") }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        rutinaViewModel.crearRutina(nombreRutina)
+                        nombreRutina = ""
+                        showDialog = false
+                    },
+                    enabled = nombreRutina.isNotBlank()
+                ) {
+                    Text("Crear")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
+            }
+        )
+    }
+}

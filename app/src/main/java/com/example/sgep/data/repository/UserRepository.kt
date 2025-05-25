@@ -2,6 +2,7 @@ package com.example.sgep.data.repository
 
 import com.example.sgep.data.dao.UserDao
 import com.example.sgep.data.entity.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 class UserRepository(private val userDao: UserDao) {
 
@@ -24,7 +25,7 @@ class UserRepository(private val userDao: UserDao) {
      */
     suspend fun validateLogin(email: String, password: String): Boolean {
         val user = userDao.getUserByEmail(email)
-        // Simula la validación de la contraseña hasheada, reemplázalo con tu lógica real de hash.
+        // Simula la validación de la contraseña hasheada, reemplázalo con la lógica real de hash.
         return user != null && user.contraseñaHash == password.hashCode().toString()
     }
 
@@ -43,14 +44,12 @@ class UserRepository(private val userDao: UserDao) {
         nombre: String,
         email: String,
         password: String,
-        pesoActual: Double?,
-        estatura: Double?,
         objetivo: String
     ): Result<Long> {
         if (email.isBlank() || password.isBlank() || nombre.isBlank()) {
             return Result.failure(Exception("Los campos nombre, email y contraseña son obligatorios."))
         }
-        val existingUser = userDao.getUserByEmail(email)
+        val existingUser = getUserByEmail(email)
         if (existingUser != null) {
             return Result.failure(Exception("El usuario ya está registrado."))
         }
@@ -58,8 +57,6 @@ class UserRepository(private val userDao: UserDao) {
             nombre = nombre,
             email = email,
             contraseñaHash = password.hashCode().toString(), // Almacena el hash de la contraseña
-            pesoActual = pesoActual,
-            estatura = estatura,
             objetivo = objetivo
         )
         return try {
@@ -68,5 +65,12 @@ class UserRepository(private val userDao: UserDao) {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+    /**
+     * Obtiene un flujo del usuario actualmente logueado.
+     * @return Flow que emite el usuario actual o null si no hay sesión activa.
+     */
+    fun getCurrentUserFlow(): Flow<UserEntity?> {
+        return userDao.getCurrentUser()
     }
 }

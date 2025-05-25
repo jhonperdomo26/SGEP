@@ -1,22 +1,30 @@
-package com.example.sgep.data.dao // Asegúrate de que este paquete sea correcto
+package com.example.sgep.data.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.example.sgep.data.entity.RutinaEntity
-import kotlinx.coroutines.flow.Flow // Importa Flow
 
+/**
+ * RutinaDao nos permite acceder y modificar las rutinas en la base de datos.
+ */
 @Dao
 interface RutinaDao {
+    // Insertar una nueva rutina
+    @Insert
+    suspend fun insertRutina(rutina: RutinaEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(rutina: RutinaEntity): Long
+    // Obtener todas las rutinas
+    @Query("SELECT * FROM rutina")
+    suspend fun getAllRutinas(): List<RutinaEntity>
 
-    @Query("SELECT * FROM routines WHERE id = :id LIMIT 1")
-    suspend fun getRutinaById(id: Int): RutinaEntity?
+    // Obtener una rutina específica por ID
+    @Query("SELECT * FROM rutina WHERE id = :rutinaId")
+    suspend fun getRutinaById(rutinaId: Int): RutinaEntity?
 
-    // *** Nuevo método para obtener todas las rutinas como Flow ***
-    @Query("SELECT * FROM routines ORDER BY fechaCreacion DESC") // Puedes ordenar como prefieras
-    fun getAllRutinas(): Flow<List<RutinaEntity>>
+    // Actualizar una rutina existente
+    @Update
+    suspend fun updateRutina(rutina: RutinaEntity)
+
+    // Eliminar una rutina por entidad
+    @Delete
+    suspend fun deleteRutina(rutina: RutinaEntity)
 }
