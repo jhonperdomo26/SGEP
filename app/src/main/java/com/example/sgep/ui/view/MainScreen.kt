@@ -1,5 +1,7 @@
 package com.example.sgep.ui.view
 
+import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FitnessCenter
@@ -11,22 +13,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.example.sgep.data.entity.UserEntity
+import com.example.sgep.viewmodel.LoginViewModel
+import com.example.sgep.viewmodel.MedidaCorporalViewModel
 import com.example.sgep.viewmodel.RutinaViewModel
 
 sealed class Screen(val route: String, val label: String, val icon: @Composable (() -> Unit)) {
     object Inicio : Screen("inicio", "Inicio", { Icon(Icons.Default.Home, contentDescription = "Inicio") })
     object Rutinas : Screen("rutinas", "Rutinas", { Icon(Icons.Default.FitnessCenter, contentDescription = "Rutinas") })
     object Perfil : Screen("perfil", "Perfil", { Icon(Icons.Default.Person, contentDescription = "Perfil") })
+    object Medidas : Screen("medidas", "Medidas", { Icon(Icons.Default.Person, contentDescription = "Medidas") })
 }
 
 @Composable
 fun MainScreen(
+    userId: Int, // ✅ Cambio 4
     user: UserEntity?,
+    loginViewModel: LoginViewModel,
     onLogout: () -> Unit,
-    rutinaViewModel: RutinaViewModel
+    rutinaViewModel: RutinaViewModel,
+    medidaCorporalViewModel: MedidaCorporalViewModel
 ) {
     val navController = rememberNavController()
     Scaffold(
@@ -34,9 +44,12 @@ fun MainScreen(
     ) { innerPadding ->
         NavigationHost(
             navController = navController,
+            loginViewModel = loginViewModel,
             user = user,
+            userId = userId,
             onLogout = onLogout,
             rutinaViewModel = rutinaViewModel,
+            medidaCorporalViewModel = medidaCorporalViewModel,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -69,18 +82,26 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun NavigationHost(
     navController: NavHostController,
+    loginViewModel: LoginViewModel,
     user: UserEntity?,
+    userId: Int, // ✅ Cambio 4
     onLogout: () -> Unit,
     rutinaViewModel: RutinaViewModel,
+    medidaCorporalViewModel: MedidaCorporalViewModel,
     modifier: Modifier = Modifier
 ) {
     NavHost(navController = navController, startDestination = Screen.Inicio.route, modifier = modifier) {
         composable(Screen.Inicio.route) {
-            WelcomeScreen(user = user, onLogout = onLogout)
+            WelcomeScreen(
+                user = null, // Ya no tienes el UserEntity completo
+                viewModel = loginViewModel,
+                onLogout = onLogout
+            )
         }
         composable(Screen.Rutinas.route) {
             RutinasScreen(
                 rutinaViewModel = rutinaViewModel,
+                userId = userId,
                 onRutinaSeleccionada = { rutina ->
                     navController.navigate("detalle_rutina/${rutina.id}")
                 },
@@ -89,19 +110,33 @@ fun NavigationHost(
                 }
             )
         }
-        composable("estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}") { backStackEntry ->
+        composable("estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}/{grupoMuscular}/{descripcion}") { backStackEntry ->
             val ejercicioEnRutinaId = backStackEntry.arguments?.getString("ejercicioEnRutinaId")?.toIntOrNull() ?: return@composable
             val nombreEjercicio = backStackEntry.arguments?.getString("nombreEjercicio") ?: "Ejercicio"
+            val grupoMuscular = backStackEntry.arguments?.getString("grupoMuscular") ?: "Grupo muscular"
+            val descripcion = backStackEntry.arguments?.getString("descripcion") ?: "Descripción no disponible"
 
             EstadisticasEjercicioScreen(
                 ejercicioEnRutinaId = ejercicioEnRutinaId,
                 nombreEjercicio = nombreEjercicio,
+                grupoMuscular = grupoMuscular,
+                descripcion = descripcion,
                 rutinaViewModel = rutinaViewModel,
                 onBack = { navController.popBackStack() }
             )
         }
         composable(Screen.Perfil.route) {
-            PerfilScreen(user = user)
+            PerfilScreen(
+                onMedidasClick = { navController.navigate(Screen.Medidas.route) }
+            )
+        }
+        composable(Screen.Medidas.route) {
+            Log.d("MainScreen", "Abriendo MedidaCorporalScreen con userId=$userId") // ✅ Cambio 6
+            MedidaCorporalScreen(
+                viewModel = medidaCorporalViewModel,
+                userId = userId, // ✅ Cambio 5
+                onBack = { navController.popBackStack() }
+            )
         }
         composable("detalle_rutina/{rutinaId}") { backStackEntry ->
             val rutinaId = backStackEntry.arguments?.getString("rutinaId")?.toIntOrNull() ?: return@composable
@@ -124,7 +159,7 @@ fun NavigationHost(
                         rutinaViewModel.agregarEjercicioARutina(it.id, ejercicioId)
                     },
                     onEliminarRutina = {
-                        rutinaViewModel.eliminarRutina(it) {
+                        rutinaViewModel.eliminarRutina(it, userId) {
                             navController.popBackStack()
                         }
                     },
@@ -159,14 +194,36 @@ fun NavigationHost(
 }
 
 @Composable
-fun PerfilScreen(user: UserEntity?) {
+fun PerfilScreen(
+    onMedidasClick: () -> Unit
+) {
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                        MaterialTheme.colorScheme.background
+                    ),
+                    startY = 0f,
+                    endY = 1000f
+                )
+            )
     ) {
-        Text(
-            text = "Perfil del usuario: ${user?.nombre ?: "Usuario"}",
-            style = MaterialTheme.typography.headlineSmall
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(
+                onClick = onMedidasClick,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Text("Mis Medidas Corporales")
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sgep.data.database.AppDatabase
 import com.example.sgep.data.entity.UserEntity
+import com.example.sgep.domain.usecase.LoginUseCase
 import com.example.sgep.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: UserRepository
+    private val loginUseCase: LoginUseCase
 
     private val _currentUser = MutableStateFlow<UserEntity?>(null)
     val currentUser: StateFlow<UserEntity?> get() = _currentUser
@@ -26,7 +27,15 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         val db = AppDatabase.getDatabase(application)
-        repository = UserRepository(db.userDao())
+        val userRepository = UserRepository(db.userDao())
+        loginUseCase = LoginUseCase(userRepository)
+
+        // Cargar usuario actual al iniciar
+        viewModelScope.launch {
+            loginUseCase.getCurrentUser().collect { user ->
+                _currentUser.value = user
+            }
+        }
     }
 
     fun login(email: String, password: String) {
@@ -37,20 +46,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
-                // Verificar si el usuario existe en la base de datos
-                val user = repository.getUserByEmail(email)
+                val user = loginUseCase.login(email, password)
                 if (user != null) {
-                    if (user.contraseñaHash == password.hashCode().toString()) {
-                        _currentUser.value = user // Actualizar el usuario actual
-                        _loginResult.value = "Inicio de sesión exitoso"
-                        Log.d("LoginViewModel", "Inicio de sesión exitoso para el usuario: ${user.nombre}")
-                    } else {
-                        _loginResult.value = "Credenciales incorrectas"
-                        Log.d("LoginViewModel", "Contraseña incorrecta para el email: $email")
-                    }
+                    _currentUser.value = user
+                    _loginResult.value = "Inicio de sesión exitoso"
+                    Log.d("LoginViewModel", "Inicio de sesión exitoso para: ${user.nombre}")
                 } else {
-                    _loginResult.value = "Usuario no encontrado"
-                    Log.d("LoginViewModel", "Usuario no encontrado para el email: $email")
+                    _loginResult.value = "Credenciales incorrectas"
+                    Log.d("LoginViewModel", "Credenciales incorrectas para: $email")
                 }
             } catch (e: Exception) {
                 _loginResult.value = "Error inesperado: ${e.localizedMessage ?: "Error desconocido"}"
@@ -59,45 +62,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun register(
-        nombre: String,
-        email: String,
-        password: String,
-        pesoActual: Double?,
-        estatura: Double?,
-        objetivo: String
-    ) {
-        viewModelScope.launch {
-            try {
-                val result = repository.registerUser(
-                    nombre = nombre,
-                    email = email,
-                    password = password,
-                    pesoActual = pesoActual,
-                    estatura = estatura,
-                    objetivo = objetivo
-                )
-                if (result.isSuccess) {
-                    _registerResult.value = "Registro exitoso"
-                    Log.d("LoginViewModel", "Registro exitoso para el usuario: $nombre")
-                } else {
-                    _registerResult.value = result.exceptionOrNull()?.message ?: "Error desconocido"
-                    Log.d("LoginViewModel", "Error en registro: ${result.exceptionOrNull()?.message}")
-                }
-            } catch (e: Exception) {
-                _registerResult.value = "Error inesperado: ${e.localizedMessage}"
-                Log.e("LoginViewModel", "Error en registro: ${e.localizedMessage}")
-            }
-        }
-    }
-
-    fun updateRegisterErrorMessage(message: String) {
-        _registerResult.value = message
-    }
-
     fun logout() {
-        _currentUser.value = null
-        _loginResult.value = ""
-        Log.d("LoginViewModel", "Sesión cerrada, usuario actual reiniciado a null")
+        viewModelScope.launch {
+            _currentUser.value = null
+            _loginResult.value = ""
+            Log.d("LoginViewModel", "Sesión cerrada")
+        }
     }
 }

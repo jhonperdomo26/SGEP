@@ -20,6 +20,10 @@ interface RutinaDao {
     @Query("SELECT * FROM rutina WHERE id = :rutinaId")
     suspend fun getRutinaById(rutinaId: Int): RutinaEntity?
 
+    // ✅ Obtener todas las rutinas creadas por un usuario específico
+    @Query("SELECT * FROM rutina WHERE userId = :userId")
+    suspend fun getRutinasByUserId(userId: Int): List<RutinaEntity>
+
     // Actualizar una rutina existente
     @Update
     suspend fun updateRutina(rutina: RutinaEntity)

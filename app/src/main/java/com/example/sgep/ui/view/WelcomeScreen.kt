@@ -1,45 +1,32 @@
 package com.example.sgep.ui.view
 
-import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Height
-import androidx.compose.material.icons.filled.MonitorWeight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sgep.data.entity.UserEntity
 import com.example.sgep.viewmodel.LoginViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun WelcomeScreen(
     user: UserEntity?,
+    viewModel: LoginViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -66,7 +53,6 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Header
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -81,11 +67,20 @@ fun WelcomeScreen(
                 )
             }
 
-            // Contenido principal
-            UserInfoSection(user = user)
+            // Espaciador para empujar el contenido al centro
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Contenido principal centrado
+            UserInfoSection(user = currentUser ?: user)
+
+            // Espaciador para balancear con el botón
+            Spacer(modifier = Modifier.weight(1f))
 
             // Footer con botón
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Divider(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     modifier = Modifier
@@ -164,54 +159,5 @@ private fun UserInfoSection(user: UserEntity?) {
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Estadísticas adicionales (si existen)
-        user?.let {
-            if (it.pesoActual != null || it.estatura != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    it.pesoActual?.let { peso ->
-                        MetricItem(
-                            value = "$peso kg",
-                            label = "Peso actual",
-                        )
-                    }
-
-                    it.estatura?.let { estatura ->
-                        MetricItem(
-                            value = "${estatura}cm",
-                            label = "Estatura",
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MetricItem(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            modifier = Modifier.padding(vertical = 4.dp)
-        )
-
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        )
     }
 }
