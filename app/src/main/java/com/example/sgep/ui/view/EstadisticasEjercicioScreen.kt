@@ -7,10 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -25,18 +21,16 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.Color as AndroidColor
-import androidx.compose.material3.TopAppBar
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstadisticasEjercicioScreen(
     ejercicioEnRutinaId: Int,
     nombreEjercicio: String,
-    grupoMuscular: String,  // Nuevo parámetro
-    descripcion: String,    // Nuevo parámetro
+    grupoMuscular: String,
+    descripcion: String,
     rutinaViewModel: RutinaViewModel,
     onBack: () -> Unit
 ) {
@@ -67,7 +61,6 @@ fun EstadisticasEjercicioScreen(
     val etiquetas = volumenPorSesion.keys.mapIndexed { index, _ -> "Sesión ${index + 1}" }
     val volumenValores = volumenPorSesion.values.toList()
 
-    // Para las otras 3 gráficas, calculamos listas de valores por sesión (usando misma clave sesionRutinaId)
     val mayorPesoPorSesion = series.groupBy { it.sesionRutinaId }.mapValues { entry ->
         entry.value.maxOfOrNull { it.peso } ?: 0f
     }.values.toList()
@@ -79,6 +72,9 @@ fun EstadisticasEjercicioScreen(
     val volumenSeriePorSesion = series.groupBy { it.sesionRutinaId }.mapValues { entry ->
         entry.value.maxOfOrNull { it.peso * it.repeticiones } ?: 0f
     }.values.toList()
+
+    // ✅ Declaración del scrollState
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -97,7 +93,7 @@ fun EstadisticasEjercicioScreen(
                 .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(scrollState), // Habilita scroll vertical
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Card(
@@ -105,23 +101,14 @@ fun EstadisticasEjercicioScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Grupo muscular: $grupoMuscularDecoded",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text("Grupo muscular: $grupoMuscularDecoded", style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Descripción: $descripcionDecoded",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text("Descripción: $descripcionDecoded", style = MaterialTheme.typography.bodyLarge)
                 }
             }
 
-            // Sección de estadísticas (existente)
-            Text(
-                "Estadísticas:",
-                style = MaterialTheme.typography.titleMedium
-            )
+            Text("Estadísticas:", style = MaterialTheme.typography.titleMedium)
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -141,67 +128,36 @@ fun EstadisticasEjercicioScreen(
             }
 
             if (volumenValores.isNotEmpty()) {
-                // 1. Volumen por sesión
-                Text(
-                    text = "Volumen por sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
+                Text("Volumen por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
                     valores = volumenValores,
                     etiquetas = etiquetas,
                     titulo = "Volumen por sesión",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
+                    modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
 
-                // 2. Mayor peso por sesión
-                Text(
-                    text = "Mayor peso por sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Text("Mayor peso por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
                     valores = mayorPesoPorSesion,
                     etiquetas = etiquetas,
                     titulo = "Mayor peso por sesión",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
+                    modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
 
-                // 3. Mejor 1RM estimado por sesión
-                Text(
-                    text = "Mejor 1RM estimado por sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Text("Mejor 1RM estimado por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
                     valores = mejor1RMPorSesion,
                     etiquetas = etiquetas,
                     titulo = "Mejor 1RM estimado por sesión",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
+                    modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
 
-                // 4. Mejor volumen de serie por sesión
-                Text(
-                    text = "Mejor volumen de serie por sesión",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                Text("Mejor volumen de serie por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
                     valores = volumenSeriePorSesion,
                     etiquetas = etiquetas,
                     titulo = "Mejor volumen de serie por sesión",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
+                    modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
             } else {
                 Text("No hay datos suficientes para mostrar gráficos.")
@@ -234,8 +190,9 @@ fun LineChartEstadisticas(
             val entries = valores.mapIndexed { index, valor ->
                 Entry(index.toFloat(), valor)
             }
+
             val dataSet = LineDataSet(entries, titulo).apply {
-                color = AndroidColor.rgb(33, 150, 243)  // azul
+                color = AndroidColor.rgb(33, 150, 243)
                 valueTextColor = AndroidColor.WHITE
                 valueTextSize = 12f
                 setDrawCircles(true)
