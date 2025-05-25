@@ -14,4 +14,5 @@ data class EjercicioPredefinidoEntity(
     val nombre: String,          // Ej: "Press de banca"
     val grupoMuscular: String,   // Ej: "Pecho"
     val descripcion: String      // Breve instrucción o tips
+
 )
