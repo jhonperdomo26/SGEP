@@ -12,17 +12,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.sgep.viewmodel.LoginViewModel
+import com.example.sgep.viewmodel.RegisterViewModel
 import kotlinx.coroutines.delay
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
@@ -31,7 +28,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    viewModel: LoginViewModel,
+    viewModel: RegisterViewModel,
     onBack: () -> Unit,
     onRegisterSuccess: () -> Unit
 ) {
@@ -39,9 +36,11 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var currentWeight by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("") }
     var goal by remember { mutableStateOf("") }
+
+    // Estados para errores de validación
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
 
     val registerMessage by viewModel.registerResult.collectAsStateWithLifecycle()
 
@@ -52,12 +51,30 @@ fun RegisterScreen(
         }
     }
 
+    // Validación en tiempo real del email
+    LaunchedEffect(email) {
+        emailError = if (email.isNotBlank() && !email.contains("@")) {
+            "El correo debe incluir @ y un dominio (ej: usuario@dominio.com)"
+        } else {
+            ""
+        }
+    }
+
+    // Validación en tiempo real de la contraseña
+    LaunchedEffect(password) {
+        passwordError = when {
+            password.isBlank() -> ""
+            password.length < 4 -> "Mínimo 4 caracteres"
+            password.length > 8 -> "Máximo 8 caracteres"
+            else -> ""
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Fondo degradado igual que en login
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -77,19 +94,9 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
-                .verticalScroll(rememberScrollState()), // Scroll para formularios largos
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//            // Header consistente
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_gym_logo),
-//                contentDescription = "App Logo",
-//                modifier = Modifier
-//                    .size(100.dp)
-//                    .padding(bottom = 24.dp),
-//                contentScale = ContentScale.Fit
-//            )
-
             Text(
                 text = "Crear Cuenta",
                 style = MaterialTheme.typography.headlineMedium.copy(
@@ -110,7 +117,6 @@ fun RegisterScreen(
                 )
             }
 
-            // Campos del formulario con estilo consistente
             InputField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -138,25 +144,9 @@ fun RegisterScreen(
             )
 
             InputField(
-                value = currentWeight,
-                onValueChange = { currentWeight = it },
-                label = "Peso Actual (kg)",
-                keyboardType = KeyboardType.Number,
-                isOptional = true
-            )
-
-            InputField(
-                value = height,
-                onValueChange = { height = it },
-                label = "Estatura (cm)",
-                keyboardType = KeyboardType.Number,
-                isOptional = true
-            )
-
-            InputField(
                 value = goal,
                 onValueChange = { goal = it },
-                label = "Objetivo Personal",
+                label = "Objetivo Personal (opcional)",
                 keyboardType = KeyboardType.Text,
                 isOptional = true
             )
@@ -165,20 +155,16 @@ fun RegisterScreen(
 
             Button(
                 onClick = {
-                    if (password != confirmPassword) {
-                        viewModel.updateRegisterErrorMessage("Las contraseñas no coinciden")
-                    } else {
-                        val weight = currentWeight.toDoubleOrNull()
-                        val heightValue = height.toDoubleOrNull()
-                        viewModel.register(
-                            nombre = fullName,
-                            email = email,
-                            password = password,
-                            pesoActual = weight,
-                            estatura = heightValue,
-                            objetivo = goal
-                        )
-                    }
+                    // Limpiar mensajes anteriores
+                    viewModel.clearRegisterResult()
+                    // Validar antes de enviar
+                    viewModel.register(
+                        nombre = fullName,
+                        email = email,
+                        password = password,
+                        confirmPassword = confirmPassword,
+                        objetivo = goal
+                    )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -208,7 +194,6 @@ fun RegisterScreen(
     }
 }
 
-// Componente reutilizable para campos de texto
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InputField(
@@ -216,7 +201,9 @@ private fun InputField(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType,
-    isOptional: Boolean = false
+    isOptional: Boolean = false,
+    isError: Boolean = false,
+    errorMessage: String = ""
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
         OutlinedTextField(
@@ -224,7 +211,7 @@ private fun InputField(
             onValueChange = onValueChange,
             label = {
                 Text(
-                    text = if (isOptional) "$label (opcional)" else label,
+                    text = if (isOptional) label else "$label *",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -233,22 +220,34 @@ private fun InputField(
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true,
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.outline,
                 containerColor = MaterialTheme.colorScheme.surface
             ),
+            isError = isError,
             modifier = Modifier.fillMaxWidth()
         )
+        if (isError && errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
     }
 }
 
-// Componente reutilizable para campos de contraseña
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String
+    label: String,
+    isError: Boolean = false,
+    errorMessage: String = ""
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
 
@@ -258,7 +257,7 @@ private fun PasswordField(
             onValueChange = onValueChange,
             label = {
                 Text(
-                    label,
+                    "$label *",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -271,16 +270,28 @@ private fun PasswordField(
                     Icon(
                         imageVector = if (isPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                         contentDescription = "Toggle password visibility",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isError) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             },
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.outline,
                 containerColor = MaterialTheme.colorScheme.surface
             ),
+            isError = isError,
             modifier = Modifier.fillMaxWidth()
         )
+        if (isError && errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
     }
 }

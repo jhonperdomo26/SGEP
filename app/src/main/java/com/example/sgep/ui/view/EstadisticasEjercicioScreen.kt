@@ -7,6 +7,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -21,15 +25,24 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.Color as AndroidColor
+import androidx.compose.material3.TopAppBar
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstadisticasEjercicioScreen(
     ejercicioEnRutinaId: Int,
     nombreEjercicio: String,
+    grupoMuscular: String,  // Nuevo parámetro
+    descripcion: String,    // Nuevo parámetro
     rutinaViewModel: RutinaViewModel,
     onBack: () -> Unit
 ) {
+    val nombreEjercicioDecoded = URLDecoder.decode(nombreEjercicio, StandardCharsets.UTF_8.toString())
+    val grupoMuscularDecoded = URLDecoder.decode(grupoMuscular, StandardCharsets.UTF_8.toString())
+    val descripcionDecoded = URLDecoder.decode(descripcion, StandardCharsets.UTF_8.toString())
     val series by rutinaViewModel.seriesPorEjercicio.collectAsState()
 
     LaunchedEffect(ejercicioEnRutinaId) {
@@ -37,9 +50,11 @@ fun EstadisticasEjercicioScreen(
     }
 
     val mayorPeso = series.maxOfOrNull { it.peso } ?: 0f
+
     val mejor1RM = series.maxOfOrNull {
         it.peso * (1 + it.repeticiones / 30f)
     }?.roundToInt() ?: 0
+
     val mejorVolumenSerie = series.maxOfOrNull {
         it.peso * it.repeticiones
     } ?: 0f
@@ -68,7 +83,7 @@ fun EstadisticasEjercicioScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Estadísticas de $nombreEjercicio") },
+                title = { Text(nombreEjercicioDecoded) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
@@ -77,8 +92,6 @@ fun EstadisticasEjercicioScreen(
             )
         }
     ) { padding ->
-        val scrollState = rememberScrollState()
-
         Column(
             Modifier
                 .padding(padding)
@@ -87,6 +100,28 @@ fun EstadisticasEjercicioScreen(
                 .verticalScroll(scrollState), // Habilita scroll vertical
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Grupo muscular: $grupoMuscularDecoded",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Descripción: $descripcionDecoded",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            // Sección de estadísticas (existente)
+            Text(
+                "Estadísticas:",
+                style = MaterialTheme.typography.titleMedium
+            )
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
