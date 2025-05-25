@@ -21,6 +21,8 @@ import com.example.sgep.data.repository.SesionRutinaRepository
 import com.example.sgep.domain.usecase.*
 import com.example.sgep.viewmodel.MedidaCorporalViewModel
 import com.example.sgep.viewmodel.MedidaCorporalViewModelFactory
+import com.example.sgep.viewmodel.RegisterViewModel
+import com.example.sgep.viewmodel.RegisterViewModelFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -114,9 +116,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme {
+
                 // LoginViewModel instanciado
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(application)
+                )
+                //RegisterViewModel instanciado
+                val registerViewModel: RegisterViewModel = viewModel(
+                    factory = RegisterViewModelFactory(application)
                 )
 
                 val currentUser by loginViewModel.currentUser.collectAsState()
@@ -177,7 +184,8 @@ class MainActivity : ComponentActivity() {
 
                 // Pasa ambos ViewModels a Navigation
                 Navigation(
-                    viewModel = loginViewModel,
+                    loginViewModel = loginViewModel,
+                    registerViewModel = registerViewModel,
                     rutinaViewModel = rutinaViewModel,
                     medidaCorporalViewModel = medidaCorporalViewModel
                 )

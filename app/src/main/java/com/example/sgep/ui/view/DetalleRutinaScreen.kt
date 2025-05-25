@@ -94,9 +94,17 @@ fun DetalleRutinaScreen(
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                                     .clickable {
-                                        val encodedNombre = java.net.URLEncoder.encode(ejercicio?.nombre ?: "Ejercicio", "UTF-8")
-                                        navController.navigate("estadisticas_ejercicio/${ejercicioEnRutina.id}/$encodedNombre")
+                                        val nombre = ejercicio?.nombre ?: "Ejercicio"
+                                        val grupoMuscular = ejercicio?.grupoMuscular ?: "Desconocido"
+                                        val descripcion = ejercicio?.descripcion ?: "Sin descripción"
+
+                                        val encodedNombre = java.net.URLEncoder.encode(nombre, "UTF-8")
+                                        val encodedGrupo = java.net.URLEncoder.encode(grupoMuscular, "UTF-8")
+                                        val encodedDescripcion = java.net.URLEncoder.encode(descripcion, "UTF-8")
+
+                                        navController.navigate("estadisticas_ejercicio/${ejercicioEnRutina.id}/$encodedNombre/$encodedGrupo/$encodedDescripcion")
                                     }
+
                             ) {
                                 Row(
                                     Modifier

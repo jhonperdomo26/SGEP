@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.example.sgep.data.entity.UserEntity
+import com.example.sgep.viewmodel.LoginViewModel
 import com.example.sgep.viewmodel.MedidaCorporalViewModel
 import com.example.sgep.viewmodel.RutinaViewModel
 
@@ -30,6 +32,8 @@ sealed class Screen(val route: String, val label: String, val icon: @Composable 
 @Composable
 fun MainScreen(
     userId: Int, // ✅ Cambio 4
+    user: UserEntity?,
+    loginViewModel: LoginViewModel,
     onLogout: () -> Unit,
     rutinaViewModel: RutinaViewModel,
     medidaCorporalViewModel: MedidaCorporalViewModel
@@ -40,7 +44,9 @@ fun MainScreen(
     ) { innerPadding ->
         NavigationHost(
             navController = navController,
-            userId = userId, // ✅ Se pasa el ID
+            loginViewModel = loginViewModel,
+            user = user,
+            userId = userId,
             onLogout = onLogout,
             rutinaViewModel = rutinaViewModel,
             medidaCorporalViewModel = medidaCorporalViewModel,
@@ -76,6 +82,8 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun NavigationHost(
     navController: NavHostController,
+    loginViewModel: LoginViewModel,
+    user: UserEntity?,
     userId: Int, // ✅ Cambio 4
     onLogout: () -> Unit,
     rutinaViewModel: RutinaViewModel,
@@ -86,6 +94,7 @@ fun NavigationHost(
         composable(Screen.Inicio.route) {
             WelcomeScreen(
                 user = null, // Ya no tienes el UserEntity completo
+                viewModel = loginViewModel,
                 onLogout = onLogout
             )
         }
@@ -100,13 +109,17 @@ fun NavigationHost(
                 }
             )
         }
-        composable("estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}") { backStackEntry ->
+        composable("estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}/{grupoMuscular}/{descripcion}") { backStackEntry ->
             val ejercicioEnRutinaId = backStackEntry.arguments?.getString("ejercicioEnRutinaId")?.toIntOrNull() ?: return@composable
             val nombreEjercicio = backStackEntry.arguments?.getString("nombreEjercicio") ?: "Ejercicio"
+            val grupoMuscular = backStackEntry.arguments?.getString("grupoMuscular") ?: "Grupo muscular"
+            val descripcion = backStackEntry.arguments?.getString("descripcion") ?: "Descripción no disponible"
 
             EstadisticasEjercicioScreen(
                 ejercicioEnRutinaId = ejercicioEnRutinaId,
                 nombreEjercicio = nombreEjercicio,
+                grupoMuscular = grupoMuscular,
+                descripcion = descripcion,
                 rutinaViewModel = rutinaViewModel,
                 onBack = { navController.popBackStack() }
             )
