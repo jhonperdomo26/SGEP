@@ -70,6 +70,9 @@ dependencies {
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.runtime:runtime")
+    implementation("androidx.compose.runtime:runtime-livedata")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     //google gson
     implementation("com.google.code.gson:gson:2.10.1")
@@ -102,5 +105,4 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     implementation("org.mindrot:jbcrypt:0.4")
-
 }

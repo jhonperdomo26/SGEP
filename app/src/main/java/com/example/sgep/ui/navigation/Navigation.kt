@@ -11,13 +11,12 @@ import com.example.sgep.ui.view.RegisterScreen
 import com.example.sgep.ui.view.MainScreen
 import com.example.sgep.viewmodel.LoginViewModel
 import com.example.sgep.viewmodel.RutinaViewModel
-import com.example.sgep.data.entity.UserEntity
+import com.example.sgep.viewmodel.MedidaCorporalViewModel
 
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val MAIN = "main"
-    // Las rutas internas (rutinas, detalles, etc.) se manejan dentro de MainScreen
+    const val MAIN_WITH_USER = "main/{userId}" // ✅ Cambio 2
 }
 
 /**
@@ -27,7 +26,8 @@ object Routes {
 @Composable
 fun Navigation(
     viewModel: LoginViewModel,
-    rutinaViewModel: RutinaViewModel // <- Agregado aquí
+    rutinaViewModel: RutinaViewModel,
+    medidaCorporalViewModel: MedidaCorporalViewModel
 ) {
     val navController: NavHostController = rememberNavController()
 
@@ -36,15 +36,16 @@ fun Navigation(
             LoginScreen(
                 onRegisterClick = { navController.navigate(Routes.REGISTER) },
                 onLoginSuccess = { user ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
                     Log.d("Navigation", "Navegando a MainScreen con usuario: ${user.nombre}")
-                    navController.navigate(Routes.MAIN) {
+                    // ✅ Cambio 1: navegación con userId
+                    navController.navigate("main/${user.id}") {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 },
                 viewModel = viewModel
             )
         }
+
         composable(Routes.REGISTER) {
             RegisterScreen(
                 viewModel = viewModel,
@@ -52,20 +53,22 @@ fun Navigation(
                 onRegisterSuccess = { navController.navigate(Routes.LOGIN) }
             )
         }
-        composable(Routes.MAIN) {
-            // Recuperar el usuario desde el back stack (como ya lo hacías)
-            val user = navController.previousBackStackEntry?.savedStateHandle?.get<UserEntity>("user")
-            Log.d("Navigation", "Usuario recibido en MainScreen: $user")
-            // Pasa el rutinaViewModel a MainScreen
+
+        // ✅ Cambio 3: nueva ruta que recibe userId como argumento
+        composable("main/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")?.toIntOrNull() ?: 0
+            Log.d("Navigation", "userId recibido en MainScreen: $userId")
+
             MainScreen(
-                user = user,
+                userId = userId,
                 onLogout = {
                     viewModel.logout()
                     navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.MAIN) { inclusive = true }
+                        popUpTo("main/{userId}") { inclusive = true }
                     }
                 },
-                rutinaViewModel = rutinaViewModel
+                rutinaViewModel = rutinaViewModel,
+                medidaCorporalViewModel = medidaCorporalViewModel
             )
         }
     }

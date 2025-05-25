@@ -3,6 +3,9 @@ package com.example.sgep
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sgep.ui.navigation.Navigation
 import com.example.sgep.ui.theme.AppTheme
@@ -12,9 +15,12 @@ import com.example.sgep.viewmodel.RutinaViewModel
 import com.example.sgep.viewmodel.RutinaViewModelFactory
 import com.example.sgep.data.database.AppDatabase
 import com.example.sgep.data.entity.EjercicioPredefinidoEntity
+import com.example.sgep.data.repository.MedidaCorporalRepository
 import com.example.sgep.data.repository.RutinaRepository
 import com.example.sgep.data.repository.SesionRutinaRepository
 import com.example.sgep.domain.usecase.*
+import com.example.sgep.viewmodel.MedidaCorporalViewModel
+import com.example.sgep.viewmodel.MedidaCorporalViewModelFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -112,6 +118,14 @@ class MainActivity : ComponentActivity() {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(application)
                 )
+
+                val currentUser by loginViewModel.currentUser.collectAsState()
+
+                // Crear el repositorio de medidas
+                val medidaCorporalRepository = MedidaCorporalRepository(
+                    medidaCorporalDao = db.medidaCorporalDao()
+                )
+
                 // Instancia la base de datos y repositorios
                 val rutinaRepository = RutinaRepository(
                     rutinaDao = db.rutinaDao(),
@@ -123,6 +137,21 @@ class MainActivity : ComponentActivity() {
                     sesionRutinaDao = db.sesionRutinaDao(),
                     registroSerieSesionDao = db.registroSerieSesionDao()
                 )
+
+                // Crear el caso de uso
+                val medidaCorporalUseCase = MedidaCorporalUseCase(medidaCorporalRepository)
+
+                // Configurar el ViewModel
+                val medidaCorporalViewModel: MedidaCorporalViewModel = viewModel(
+                    factory = MedidaCorporalViewModelFactory(medidaCorporalUseCase)
+                )
+
+                // Actualizar medidas cuando cambie el usuario
+                LaunchedEffect(currentUser) {
+                    currentUser?.let { user ->
+                        medidaCorporalViewModel.cargarMedidas(user.id)
+                    }
+                }
 
                 // Casos de uso
                 val crearRutinaUseCase = CrearRutinaUseCase(rutinaRepository)
@@ -149,7 +178,8 @@ class MainActivity : ComponentActivity() {
                 // Pasa ambos ViewModels a Navigation
                 Navigation(
                     viewModel = loginViewModel,
-                    rutinaViewModel = rutinaViewModel
+                    rutinaViewModel = rutinaViewModel,
+                    medidaCorporalViewModel = medidaCorporalViewModel
                 )
             }
         }

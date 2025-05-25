@@ -16,9 +16,10 @@ import com.example.sgep.data.entity.*
         EjercicioEnRutinaEntity::class,
         SerieEjercicioEntity::class,
         SesionRutinaEntity::class,
-        RegistroSerieSesionEntity::class
+        RegistroSerieSesionEntity::class,
+        MedidaCorporalEntity::class
     ],
-    version = 3,
+    version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -31,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun serieEjercicioDao(): SerieEjercicioDao
     abstract fun sesionRutinaDao(): SesionRutinaDao
     abstract fun registroSerieSesionDao(): RegistroSerieSesionDao
+    abstract fun medidaCorporalDao(): MedidaCorporalDao
 
     companion object {
         @Volatile
