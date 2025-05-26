@@ -52,11 +52,10 @@ class RutinaViewModel(
         }
     }
 
-    // --- Crear una nueva rutina ---
-    fun crearRutina(nombre: String) {
+    fun crearRutina(nombre: String, userId: Int) {
         viewModelScope.launch {
             try {
-                crearRutinaUseCase(nombre)
+                crearRutinaUseCase(nombre, userId) // Ahora pasas ambos parámetros
                 cargarRutinas() // Actualiza la lista
                 _mensaje.value = "Rutina creada"
             } catch (e: Exception) {
@@ -148,10 +147,10 @@ class RutinaViewModel(
         }
     }
 
-    fun eliminarRutina(rutina: RutinaEntity, onDone: () -> Unit) {
+    fun eliminarRutina(rutina: RutinaEntity, userId: Int, onDone: () -> Unit) {
         viewModelScope.launch {
             try {
-                eliminarRutinaUseCase(rutina)
+                eliminarRutinaUseCase(rutina.id, userId)
                 cargarRutinas()
                 onDone()
             } catch (e: Exception) {

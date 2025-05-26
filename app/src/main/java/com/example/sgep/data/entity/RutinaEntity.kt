@@ -5,12 +5,13 @@ import androidx.room.PrimaryKey
 
 /**
  * RutinaEntity representa una rutina creada por el usuario.
- * Solo guarda el nombre y la fecha de creación.
+ * Guarda el nombre, la fecha de creación y el ID del usuario que la creó.
  * Los ejercicios que componen la rutina se guardan aparte, ligados por rutinaId.
  */
 @Entity(tableName = "rutina")
 data class RutinaEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, // ID único
-    val nombre: String,                                // Nombre de la rutina
-    val fechaCreacion: Long = System.currentTimeMillis() // Fecha de creación en milisegundos
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,          // ID único de la rutina
+    val nombre: String,                                        // Nombre de la rutina
+    val fechaCreacion: Long = System.currentTimeMillis(),     // Fecha de creación en milisegundos
+    val userId: Int                                            // ID del usuario creador de la rutina
 )

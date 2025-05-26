@@ -16,6 +16,8 @@ import com.example.sgep.data.entity.EjercicioPredefinidoEntity
 import com.example.sgep.viewmodel.RutinaViewModel
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,7 +30,6 @@ fun SesionEntrenamientoScreen(
     onFinalizarSesion: () -> Unit
 ) {
     var sesionId by remember { mutableStateOf<Long?>(null) }
-
     val seriesPorEjercicio = remember { mutableStateMapOf<Int, SnapshotStateList<SerieUI>>() }
 
     LaunchedEffect(Unit) {
@@ -57,70 +58,111 @@ fun SesionEntrenamientoScreen(
             )
         },
         bottomBar = {
-            Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                Text("Volumen total: ${"%.0f".format(volumenTotal)} kg")
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onFinalizarSesion,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Finalizar sesión")
+            Surface(
+                tonalElevation = 4.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(
+                        "Volumen total: ${"%.0f".format(volumenTotal)} kg",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = onFinalizarSesion,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Finalizar sesión")
+                    }
                 }
             }
         }
     ) { innerPadding ->
-        LazyColumn(contentPadding = innerPadding) {
+        LazyColumn(
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = innerPadding.calculateTopPadding(),
+                bottom = 100.dp // Deja espacio para el bottomBar
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             items(ejerciciosEnRutina) { ejercicioEnRutina ->
                 val ejercicio = ejerciciosPredefinidos.find { it.id == ejercicioEnRutina.ejercicioPredefinidoId }
                 val series = seriesPorEjercicio.getOrPut(ejercicioEnRutina.id) { mutableStateListOf() }
 
-                Column(Modifier.padding(16.dp)) {
-                    Text(text = ejercicio?.nombre ?: "Ejercicio", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(
+                            text = ejercicio?.nombre ?: "Ejercicio",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
 
-                    series.forEachIndexed { index, serie ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text("Serie ${index + 1}", modifier = Modifier.width(70.dp))
+                        series.forEachIndexed { index, serie ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "Serie ${index + 1}",
+                                    modifier = Modifier.width(70.dp),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
 
-                            OutlinedTextField(
-                                value = serie.reps,
-                                onValueChange = { serie.reps = it },
-                                label = { Text("Reps") },
-                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                            )
+                                OutlinedTextField(
+                                    value = serie.reps,
+                                    onValueChange = { serie.reps = it },
+                                    label = { Text("Reps") },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp)
+                                )
 
-                            OutlinedTextField(
-                                value = serie.kg,
-                                onValueChange = { serie.kg = it },
-                                label = { Text("Kg") },
-                                modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                            )
-                            Checkbox(
-                                checked = serie.done,
-                                onCheckedChange = {
-                                    serie.done = it
-                                    if (it && sesionId != null) {
-                                        rutinaViewModel.registrarSerieSesion(
-                                            sesionRutinaId = sesionId!!.toInt(),
-                                            ejercicioEnRutinaId = ejercicioEnRutina.id,
-                                            numeroSerie = index + 1,
-                                            peso = serie.kg.text.toFloatOrNull() ?: 0f,
-                                            repeticiones = serie.reps.text.toIntOrNull() ?: 0,
-                                            completada = true
-                                        )
+                                OutlinedTextField(
+                                    value = serie.kg,
+                                    onValueChange = { serie.kg = it },
+                                    label = { Text("Kg") },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp)
+                                )
+
+                                Checkbox(
+                                    checked = serie.done,
+                                    onCheckedChange = {
+                                        serie.done = it
+                                        if (it && sesionId != null) {
+                                            rutinaViewModel.registrarSerieSesion(
+                                                sesionRutinaId = sesionId!!.toInt(),
+                                                ejercicioEnRutinaId = ejercicioEnRutina.id,
+                                                numeroSerie = index + 1,
+                                                peso = serie.kg.text.toFloatOrNull() ?: 0f,
+                                                repeticiones = serie.reps.text.toIntOrNull() ?: 0,
+                                                completada = true
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
-                    }
 
-                    Button(
-                        onClick = {
-                            series.add(SerieUI())
-                        },
-                        modifier = Modifier.align(Alignment.End).padding(top = 8.dp)
-                    ) {
-                        Text("Agregar serie")
+                        Button(
+                            onClick = { series.add(SerieUI()) },
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(top = 8.dp)
+                        ) {
+                            Text("Agregar serie")
+                        }
                     }
                 }
             }

@@ -2,7 +2,6 @@ package com.example.sgep.ui.view
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,8 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,7 +22,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.sgep.R
 import com.example.sgep.viewmodel.LoginViewModel
 import com.example.sgep.data.entity.UserEntity
 import kotlinx.coroutines.delay
@@ -83,15 +79,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo o imagen
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_gym_logo), // Reemplaza con tu recurso
-//                contentDescription = "App Logo",
-//                modifier = Modifier
-//                    .size(120.dp)
-//                    .padding(bottom = 32.dp),
-//                contentScale = ContentScale.Fit
-//            )
 
             // Título
             Text(
