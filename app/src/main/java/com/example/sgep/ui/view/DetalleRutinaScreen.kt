@@ -32,7 +32,7 @@ fun DetalleRutinaScreen(
     ejerciciosEnRutina: List<EjercicioEnRutinaEntity>,
     ejerciciosPredefinidos: List<EjercicioPredefinidoEntity>,
     onAgregarEjercicio: (Int) -> Unit,
-    onEliminarRutina: () -> Unit,
+    onEliminarRutina: (Int) -> Unit,
     onBack: () -> Unit,
     onIniciarSesion: () -> Unit,
     navController: NavController
@@ -50,7 +50,7 @@ fun DetalleRutinaScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onEliminarRutina) {
+                    IconButton(onClick = { onEliminarRutina(rutina.userId) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Eliminar rutina")
                     }
                 }
@@ -65,7 +65,6 @@ fun DetalleRutinaScreen(
         ) {
             val fechaFormateada = SimpleDateFormat("dd 'de' MMMM 'de' yyyy", Locale("es", "ES"))
                 .format(Date(rutina.fechaCreacion))
-            // Información de la rutina
             Text(
                 text = "Fecha de creación: $fechaFormateada",
                 style = MaterialTheme.typography.bodyMedium,
@@ -78,7 +77,6 @@ fun DetalleRutinaScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Lista de ejercicios
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -114,7 +112,6 @@ fun DetalleRutinaScreen(
 
                                         navController.navigate("estadisticas_ejercicio/${ejercicioEnRutina.id}/$encodedNombre/$encodedGrupo/$encodedDescripcion")
                                     }
-
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -169,7 +166,6 @@ fun DetalleRutinaScreen(
         }
     }
 
-    // AlertDialog para agregar ejercicio
     if (showAgregarDialog) {
         AlertDialog(
             onDismissRequest = { showAgregarDialog = false },

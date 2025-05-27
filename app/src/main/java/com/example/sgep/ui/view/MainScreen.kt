@@ -158,7 +158,7 @@ fun NavigationHost(
                     onAgregarEjercicio = { ejercicioId ->
                         rutinaViewModel.agregarEjercicioARutina(it.id, ejercicioId)
                     },
-                    onEliminarRutina = {
+                    onEliminarRutina = { userId ->
                         rutinaViewModel.eliminarRutina(it, userId) {
                             navController.popBackStack()
                         }

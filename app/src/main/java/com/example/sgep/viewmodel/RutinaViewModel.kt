@@ -8,10 +8,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-/**
- * RutinaViewModel administra toda la lógica y el estado relacionado con las rutinas y sus ejercicios.
- * Recibe los casos de uso necesarios (inyectados por constructor o factory).
- */
 class RutinaViewModel(
     private val crearRutinaUseCase: CrearRutinaUseCase,
     private val obtenerRutinasUseCase: ObtenerRutinasUseCase,
@@ -22,30 +18,25 @@ class RutinaViewModel(
     private val obtenerEstadisticasPorEjercicioUseCase: ObtenerEstadisticasPorEjercicioUseCase,
 ) : ViewModel() {
 
-    // --- Rutinas principales ---
     private val _rutinas = MutableStateFlow<List<RutinaEntity>>(emptyList())
     val rutinas: StateFlow<List<RutinaEntity>> get() = _rutinas
 
-    // --- NUEVO: Estado para los ejercicios en la rutina seleccionada ---
     private val _ejerciciosEnRutina = MutableStateFlow<List<EjercicioEnRutinaEntity>>(emptyList())
     val ejerciciosEnRutina: StateFlow<List<EjercicioEnRutinaEntity>> get() = _ejerciciosEnRutina
 
-    // --- NUEVO: Estado para los ejercicios predefinidos ---
     private val _ejerciciosPredefinidos = MutableStateFlow<List<EjercicioPredefinidoEntity>>(emptyList())
     val ejerciciosPredefinidos: StateFlow<List<EjercicioPredefinidoEntity>> get() = _ejerciciosPredefinidos
 
-    // --- Estado para mensajes/errores (opcional) ---
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> get() = _mensaje
 
     private val _seriesPorEjercicio = MutableStateFlow<List<RegistroSerieSesionEntity>>(emptyList())
     val seriesPorEjercicio: StateFlow<List<RegistroSerieSesionEntity>> get() = _seriesPorEjercicio
 
-    // --- Cargar todas las rutinas disponibles ---
-    fun cargarRutinas() {
+    fun cargarRutinas(userId: Int) {
         viewModelScope.launch {
             try {
-                _rutinas.value = obtenerRutinasUseCase()
+                _rutinas.value = obtenerRutinasUseCase(userId)
             } catch (e: Exception) {
                 _mensaje.value = "Error al cargar rutinas: ${e.message}"
             }
@@ -55,8 +46,8 @@ class RutinaViewModel(
     fun crearRutina(nombre: String, userId: Int) {
         viewModelScope.launch {
             try {
-                crearRutinaUseCase(nombre, userId) // Ahora pasas ambos parámetros
-                cargarRutinas() // Actualiza la lista
+                crearRutinaUseCase(nombre, userId)
+                cargarRutinas(userId)
                 _mensaje.value = "Rutina creada"
             } catch (e: Exception) {
                 _mensaje.value = "Error al crear rutina: ${e.message}"
@@ -64,11 +55,9 @@ class RutinaViewModel(
         }
     }
 
-    // --- NUEVO: Cargar ejercicios asociados a una rutina ---
     fun cargarEjerciciosEnRutina(rutinaId: Int) {
         viewModelScope.launch {
             try {
-                // Asegúrate de tener este método en tu UseCase/Repositorio
                 _ejerciciosEnRutina.value = obtenerRutinasUseCase.obtenerEjerciciosDeRutina(rutinaId)
             } catch (e: Exception) {
                 _mensaje.value = "Error al cargar ejercicios: ${e.message}"
@@ -76,11 +65,9 @@ class RutinaViewModel(
         }
     }
 
-    // --- NUEVO: Cargar la lista de ejercicios predefinidos ---
     fun cargarEjerciciosPredefinidos() {
         viewModelScope.launch {
             try {
-                // Asegúrate de tener este método en tu UseCase/Repositorio
                 _ejerciciosPredefinidos.value = obtenerRutinasUseCase.obtenerEjerciciosPredefinidos()
             } catch (e: Exception) {
                 _mensaje.value = "Error al cargar ejercicios predefinidos: ${e.message}"
@@ -88,7 +75,6 @@ class RutinaViewModel(
         }
     }
 
-    // --- NUEVO: Agregar ejercicio a rutina y recargar lista ---
     fun agregarEjercicioARutinaYRecargar(rutinaId: Int, ejercicioPredefinidoId: Int) {
         viewModelScope.launch {
             try {
@@ -105,7 +91,7 @@ class RutinaViewModel(
         viewModelScope.launch {
             try {
                 agregarEjercicioARutinaUseCase(rutinaId, ejercicioPredefinidoId)
-                cargarEjerciciosEnRutina(rutinaId) // Recarga la lista de ejercicios de la rutina
+                cargarEjerciciosEnRutina(rutinaId)
                 _mensaje.value = "Ejercicio agregado"
             } catch (e: Exception) {
                 _mensaje.value = "Error al agregar ejercicio: ${e.message}"
@@ -113,7 +99,6 @@ class RutinaViewModel(
         }
     }
 
-    // --- Iniciar una nueva sesión de entrenamiento para una rutina ---
     fun iniciarSesion(rutinaId: Int, onSesionCreada: (Long) -> Unit) {
         viewModelScope.launch {
             try {
@@ -126,7 +111,6 @@ class RutinaViewModel(
         }
     }
 
-    // --- Registrar una serie completada durante una sesión ---
     fun registrarSerieSesion(
         sesionRutinaId: Int,
         ejercicioEnRutinaId: Int,
@@ -151,7 +135,7 @@ class RutinaViewModel(
         viewModelScope.launch {
             try {
                 eliminarRutinaUseCase(rutina.id, userId)
-                cargarRutinas()
+                cargarRutinas(userId)
                 onDone()
             } catch (e: Exception) {
                 _mensaje.value = "Error al eliminar rutina: ${e.message}"
@@ -170,8 +154,8 @@ class RutinaViewModel(
         }
     }
 
-    // --- Limpia el mensaje de estado ---
     fun limpiarMensaje() {
         _mensaje.value = null
     }
 }
+

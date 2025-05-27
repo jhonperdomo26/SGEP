@@ -36,7 +36,7 @@ fun RutinasScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        rutinaViewModel.cargarRutinas()
+        rutinaViewModel.cargarRutinas(userId)
     }
 
     // Mostrar Snackbar y limpiar mensaje tras mostrarlo
