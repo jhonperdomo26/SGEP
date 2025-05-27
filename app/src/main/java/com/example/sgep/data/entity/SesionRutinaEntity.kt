@@ -5,8 +5,17 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 /**
- * SesionRutinaEntity guarda cada vez que un usuario inicia una rutina (entrenamiento real).
- * Sirve para guardar historial y progreso.
+ * Representa una sesión de entrenamiento realizada por un usuario en la base de datos.
+ *
+ * Esta entidad está vinculada a [RutinaEntity] mediante una relación de clave foránea
+ * que permite el borrado en cascada. Registra el momento exacto en que se ejecutó una rutina.
+ *
+ * @property id Identificador único autogenerado (clave primaria).
+ * @property rutinaId Referencia a la rutina realizada (clave foránea que relaciona con [RutinaEntity.id]).
+ * @property fecha Timestamp de cuando se inició la sesión (en milisegundos desde epoch).
+ *                 Valor por defecto: momento de creación del objeto ([System.currentTimeMillis]).
+ *
+ * @see RutinaEntity Para la entidad de rutina asociada.
  */
 @Entity(
     tableName = "sesion_rutina",
@@ -15,12 +24,13 @@ import androidx.room.PrimaryKey
             entity = RutinaEntity::class,
             parentColumns = ["id"],
             childColumns = ["rutinaId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE // Eliminación en cascada automática
         )
     ]
 )
 data class SesionRutinaEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val rutinaId: Int,                 // Qué rutina se realizó
-    val fecha: Long = System.currentTimeMillis() // Fecha y hora de la sesión
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val rutinaId: Int,
+    val fecha: Long = System.currentTimeMillis()
 )

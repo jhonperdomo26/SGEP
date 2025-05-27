@@ -1,25 +1,23 @@
-// domain/usecase/MedidaCorporalUseCase.kt
 package com.example.sgep.domain.usecase
 
-import com.example.sgep.data.dao.errors.MedidasError
 import com.example.sgep.data.entity.MedidaCorporalEntity
 import com.example.sgep.data.repository.MedidaCorporalRepository
 
 /**
  * Casos de uso para la gestión de medidas corporales.
- * Encapsula la lógica de negocio y utiliza el repository para operaciones de datos.
+ * Encapsula la lógica de negocio relacionada con medidas corporales,
+ * y utiliza el repositorio para realizar operaciones de datos.
  */
 class MedidaCorporalUseCase(
     private val repository: MedidaCorporalRepository
 ) {
 
-    // region Operaciones CRUD
-
     /**
-     * Registra una nueva medida corporal con validaciones.
-     * @param usuarioId ID del usuario dueño de la medida
-     * @param medida Datos de la medida corporal
-     * @return Result<Long> con el ID de la medida insertada o error
+     * Registra una nueva medida corporal para un usuario, con las validaciones necesarias.
+     *
+     * @param usuarioId ID del usuario propietario de la medida.
+     * @param medida Objeto con los datos de la medida corporal.
+     * @return Result<Long> que contiene el ID de la medida insertada o un error.
      */
     suspend fun registrarMedida(
         usuarioId: Int,
@@ -27,52 +25,54 @@ class MedidaCorporalUseCase(
     ): Result<Long> = repository.registrarMedida(usuarioId, medida)
 
     /**
-     * Obtiene todas las medidas de un usuario ordenadas por fecha (descendente).
-     * @param userId ID del usuario
-     * @return List<MedidaCorporalEntity> lista de medidas
+     * Obtiene todas las medidas registradas para un usuario, ordenadas por fecha descendente.
+     *
+     * @param userId ID del usuario.
+     * @return Lista de medidas corporales del usuario.
      */
     suspend fun obtenerMedidasPorUsuario(userId: Int): List<MedidaCorporalEntity> =
         repository.obtenerMedidasPorUsuario(userId)
 
     /**
-     * Obtiene una medida específica por su ID.
-     * @param medidaId ID de la medida
-     * @return MedidaCorporalEntity? la medida o null si no existe
+     * Obtiene una medida corporal específica dado su ID.
+     *
+     * @param medidaId ID de la medida.
+     * @return MedidaCorporalEntity o null si no existe.
      */
     suspend fun obtenerMedidaPorId(medidaId: Int): MedidaCorporalEntity? =
         repository.obtenerMedidaPorId(medidaId)
 
     /**
-     * Actualiza una medida existente.
-     * @param medida Medida con los datos actualizados
+     * Actualiza los datos de una medida corporal existente.
+     *
+     * @param medida Objeto con los datos actualizados de la medida.
      */
     suspend fun actualizarMedida(medida: MedidaCorporalEntity) =
         repository.actualizarMedida(medida)
 
     /**
      * Elimina un registro de medida corporal.
-     * @param medida Medida a eliminar
+     *
+     * @param medida Medida a eliminar.
      */
     suspend fun eliminarMedida(medida: MedidaCorporalEntity) =
         repository.eliminarMedida(medida)
 
-    // endregion
-
-    // region Operaciones especializadas
-
     /**
-     * Obtiene la última medida registrada por un usuario.
-     * @param userId ID del usuario
-     * @return MedidaCorporalEntity? la última medida o null si no hay registros
+     * Obtiene la última medida registrada por un usuario, o null si no hay registros.
+     *
+     * @param userId ID del usuario.
+     * @return Última medida corporal registrada o null.
      */
     suspend fun obtenerUltimaMedida(userId: Int): MedidaCorporalEntity? =
         repository.obtenerMedidasPorUsuario(userId).firstOrNull()
 
     /**
-     * Calcula la diferencia entre dos medidas.
-     * @param medidaActual Medida más reciente
-     * @param medidaAnterior Medida de referencia
-     * @return Map<String, Float> con las diferencias por campo (clave: nombre campo, valor: diferencia)
+     * Calcula la diferencia entre dos medidas corporales, campo por campo.
+     *
+     * @param medidaActual Medida más reciente.
+     * @param medidaAnterior Medida de referencia para comparación.
+     * @return Mapa con las diferencias por cada campo (clave = nombre del campo, valor = diferencia).
      */
     fun calcularDiferencias(
         medidaActual: MedidaCorporalEntity,
@@ -96,19 +96,4 @@ class MedidaCorporalUseCase(
             "antebrazo der" to (medidaActual.antebrazoDer - medidaAnterior.antebrazoDer)
         )
     }
-
-    // endregion
-
-    // region Validaciones (exponen las del repository si necesarias)
-
-    /**
-     * Valida los datos de una medida corporal.
-     * @throws MedidasError si alguna validación falla
-     */
-    fun validarMedidas(medida: MedidaCorporalEntity) {
-        // Delega al validador interno del repository
-        repository.validarMedidasCorporales(medida)
-    }
-
-    // endregion
 }

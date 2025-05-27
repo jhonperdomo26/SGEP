@@ -26,7 +26,13 @@ import com.example.sgep.viewmodel.RegisterViewModelFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-// --- FUNCIÓN PARA POBLAR EJERCICIOS PREDEFINIDOS ---
+/**
+ * Función para poblar la base de datos con ejercicios predefinidos.
+ * Si la tabla de ejercicios está vacía, inserta una lista por defecto de ejercicios con su
+ * nombre, grupo muscular y descripción básica.
+ *
+ * @param db instancia de la base de datos.
+ */
 fun poblarEjerciciosPredefinidos(db: AppDatabase) {
     GlobalScope.launch {
         val ejerciciosExistentes = db.ejercicioPredefinidoDao().getAll()
@@ -38,9 +44,14 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
                     descripcion = "De pie, pies a la anchura de los hombros. Baja flexionando rodillas y caderas, espalda recta."
                 ),
                 EjercicioPredefinidoEntity(
-                    nombre = "Press de banca",
+                    nombre = "Press de banca plano",
                     grupoMuscular = "Pecho",
                     descripcion = "Tumbado en banco, barra a la altura del pecho, baja y sube controladamente."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Press de banca inclinado",
+                    grupoMuscular = "Pecho",
+                    descripcion = "Tumbado en banco inclinado, barra a la altura del pecho, baja y sube controladamente."
                 ),
                 EjercicioPredefinidoEntity(
                     nombre = "Peso muerto",
@@ -108,32 +119,39 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
     }
 }
 
+/**
+ * MainActivity es el punto de entrada principal de la aplicación.
+ * - Inicializa la base de datos.
+ * - Pobla la base de datos con ejercicios predefinidos si es necesario.
+ * - Configura los ViewModels para las funcionalidades principales (login, registro, rutinas, medidas corporales).
+ * - Ejecuta la composición de UI con Jetpack Compose, aplicando el tema y la navegación principal.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Obtener instancia de la base de datos
         val db = AppDatabase.getDatabase(applicationContext)
-        poblarEjerciciosPredefinidos(db) // Poblar ejercicios al iniciar
+
+        // Poblar ejercicios predefinidos si la base de datos está vacía
+        poblarEjerciciosPredefinidos(db)
 
         setContent {
             AppTheme {
 
-                // LoginViewModel instanciado
+                // Instancia ViewModels usando las factories correspondientes
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(application)
                 )
-                //RegisterViewModel instanciado
                 val registerViewModel: RegisterViewModel = viewModel(
                     factory = RegisterViewModelFactory(application)
                 )
 
+                // Observa el usuario actual logueado desde LoginViewModel
                 val currentUser by loginViewModel.currentUser.collectAsState()
 
-                // Crear el repositorio de medidas
-                val medidaCorporalRepository = MedidaCorporalRepository(
-                    medidaCorporalDao = db.medidaCorporalDao()
-                )
-
-                // Instancia la base de datos y repositorios
+                // Crear repositorios necesarios con DAOs de la base de datos
+                val medidaCorporalRepository = MedidaCorporalRepository(db.medidaCorporalDao())
                 val rutinaRepository = RutinaRepository(
                     rutinaDao = db.rutinaDao(),
                     ejercicioEnRutinaDao = db.ejercicioEnRutinaDao(),
@@ -145,10 +163,17 @@ class MainActivity : ComponentActivity() {
                     registroSerieSesionDao = db.registroSerieSesionDao()
                 )
 
-                // Crear el caso de uso
+                // Crear casos de uso que operan con los repositorios
                 val medidaCorporalUseCase = MedidaCorporalUseCase(medidaCorporalRepository)
+                val crearRutinaUseCase = CrearRutinaUseCase(rutinaRepository)
+                val obtenerRutinasUseCase = ObtenerRutinasUseCase(rutinaRepository)
+                val agregarEjercicioARutinaUseCase = AgregarEjercicioARutinaUseCase(rutinaRepository)
+                val iniciarSesionRutinaUseCase = IniciarSesionRutinaUseCase(sesionRutinaRepository)
+                val registrarSerieSesionUseCase = RegistrarSerieSesionUseCase(sesionRutinaRepository)
+                val eliminarRutinaUseCase = EliminarRutinaUseCase(rutinaRepository)
+                val obtenerEstadisticasPorEjercicioUseCase = ObtenerEstadisticasPorEjercicioUseCase(sesionRutinaRepository)
 
-                // Configurar el ViewModel
+                // Configurar ViewModel para medidas corporales con su caso de uso
                 val medidaCorporalViewModel: MedidaCorporalViewModel = viewModel(
                     factory = MedidaCorporalViewModelFactory(medidaCorporalUseCase)
                 )
@@ -160,16 +185,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Casos de uso
-                val crearRutinaUseCase = CrearRutinaUseCase(rutinaRepository)
-                val obtenerRutinasUseCase = ObtenerRutinasUseCase(rutinaRepository)
-                val agregarEjercicioARutinaUseCase = AgregarEjercicioARutinaUseCase(rutinaRepository)
-                val iniciarSesionRutinaUseCase = IniciarSesionRutinaUseCase(sesionRutinaRepository)
-                val registrarSerieSesionUseCase = RegistrarSerieSesionUseCase(sesionRutinaRepository)
-                val eliminarRutinaUseCase = EliminarRutinaUseCase(rutinaRepository)
-                val obtenerEstadisticasPorEjercicioUseCase = ObtenerEstadisticasPorEjercicioUseCase(sesionRutinaRepository)
-
-                // RutinaViewModel con todos los casos de uso, incluyendo el de eliminar
+                // Configurar ViewModel para rutinas con todos los casos de uso relacionados
                 val rutinaViewModel: RutinaViewModel = viewModel(
                     factory = RutinaViewModelFactory(
                         crearRutinaUseCase,
@@ -182,7 +198,7 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
-                // Pasa ambos ViewModels a Navigation
+                // Configurar la navegación principal pasando los ViewModels necesarios
                 Navigation(
                     loginViewModel = loginViewModel,
                     registerViewModel = registerViewModel,

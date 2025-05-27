@@ -4,20 +4,27 @@ import androidx.room.*
 import com.example.sgep.data.entity.EjercicioPredefinidoEntity
 
 /**
- * Dao para acceder a la tabla de ejercicios predefinidos.
- * Normalmente solo la usamos para leer, porque estos ejercicios los cargamos nosotros.
+ * DAO para acceder a los ejercicios predefinidos disponibles en el sistema.
+ * Estos ejercicios son cargados por defecto y normalmente no se modifican durante el uso.
  */
 @Dao
 interface EjercicioPredefinidoDao {
-    // Insertar varios ejercicios de golpe (puedes usar esto para poblar la base de datos)
+
+    /**
+     * Inserta una lista de ejercicios predefinidos en la base de datos.
+     * Si ya existen, se reemplazan según la estrategia [OnConflictStrategy.REPLACE].
+     * Útil para poblar la base de datos al inicio.
+     *
+     * @param ejercicios Lista de objetos [EjercicioPredefinidoEntity] a insertar.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(ejercicios: List<EjercicioPredefinidoEntity>)
 
-    // Obtener todos los ejercicios predefinidos
+    /**
+     * Recupera todos los ejercicios predefinidos almacenados en la base de datos.
+     *
+     * @return Lista de [EjercicioPredefinidoEntity] disponibles.
+     */
     @Query("SELECT * FROM ejercicio_predefinido")
     suspend fun getAll(): List<EjercicioPredefinidoEntity>
-
-    // Buscar por nombre (útil para buscar desde la UI)
-    @Query("SELECT * FROM ejercicio_predefinido WHERE nombre LIKE '%' || :nombre || '%'")
-    suspend fun searchByName(nombre: String): List<EjercicioPredefinidoEntity>
 }

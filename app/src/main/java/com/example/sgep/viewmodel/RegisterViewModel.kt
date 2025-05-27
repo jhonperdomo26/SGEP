@@ -11,12 +11,26 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 
+/**
+ * ViewModel encargado de manejar la lógica de registro de usuarios.
+ *
+ * Este ViewModel extiende [AndroidViewModel] para acceder al contexto de la aplicación.
+ * Realiza validaciones de entrada, invoca el caso de uso de registro y expone
+ * el resultado del registro mediante un [StateFlow].
+ *
+ * @property registerUseCase Caso de uso para registrar un usuario en el sistema.
+ */
 class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+
     private val registerUseCase: RegisterUseCase
+
     private val _registerResult = MutableStateFlow("")
+    /**
+     * Flujo que emite mensajes de resultado del proceso de registro.
+     */
     val registerResult: StateFlow<String> get() = _registerResult
 
-    // Patrón para validar email
+    // Patrón regex para validar el formato del correo electrónico.
     private val EMAIL_PATTERN = Pattern.compile(
         "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
                 "\\@" +
@@ -33,6 +47,18 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         registerUseCase = RegisterUseCase(userRepository)
     }
 
+    /**
+     * Intenta registrar un usuario con los datos proporcionados.
+     *
+     * Realiza validaciones locales para nombre, email y contraseña antes de invocar el caso de uso.
+     * Actualiza [registerResult] con mensajes de éxito o error según corresponda.
+     *
+     * @param nombre Nombre del usuario.
+     * @param email Correo electrónico del usuario.
+     * @param password Contraseña ingresada.
+     * @param confirmPassword Confirmación de la contraseña.
+     * @param objetivo Objetivo o meta del usuario.
+     */
     fun register(
         nombre: String,
         email: String,
@@ -83,11 +109,20 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    // Función para validar el formato del email
+
+    /**
+     * Valida que el email tenga un formato correcto según [EMAIL_PATTERN].
+     *
+     * @param email Correo electrónico a validar.
+     * @return `true` si el formato es válido, `false` en caso contrario.
+     */
     private fun isValidEmail(email: String): Boolean {
         return EMAIL_PATTERN.matcher(email).matches()
     }
 
+    /**
+     * Limpia el mensaje de resultado de registro.
+     */
     fun clearRegisterResult() {
         _registerResult.value = ""
     }

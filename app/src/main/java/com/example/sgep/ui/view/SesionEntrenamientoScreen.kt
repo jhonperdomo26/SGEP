@@ -19,6 +19,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 
+/**
+ * Pantalla para la sesión de entrenamiento de una rutina específica.
+ *
+ * @param rutinaId ID de la rutina que se está ejecutando.
+ * @param ejerciciosEnRutina Lista de ejercicios asignados a la rutina.
+ * @param ejerciciosPredefinidos Lista de ejercicios predefinidos para obtener detalles.
+ * @param rutinaViewModel ViewModel que maneja la lógica de la rutina.
+ * @param onBack Callback para manejar la acción de volver atrás.
+ * @param onFinalizarSesion Callback para manejar la finalización de la sesión.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SesionEntrenamientoScreen(
@@ -29,15 +39,20 @@ fun SesionEntrenamientoScreen(
     onBack: () -> Unit,
     onFinalizarSesion: () -> Unit
 ) {
+    // Estado para guardar el ID de la sesión actual iniciada
     var sesionId by remember { mutableStateOf<Long?>(null) }
+
+    // Mapa mutable que asocia el ID del ejercicioEnRutina con la lista de series en UI
     val seriesPorEjercicio = remember { mutableStateMapOf<Int, SnapshotStateList<SerieUI>>() }
 
+    // Lanzar efecto solo una vez para iniciar la sesión y obtener el sesionId
     LaunchedEffect(Unit) {
         rutinaViewModel.iniciarSesion(rutinaId) { nuevaSesionId ->
             sesionId = nuevaSesionId
         }
     }
 
+    // Calcular el volumen total de la sesión: suma (peso * repeticiones) de todas las series completadas
     val volumenTotal = seriesPorEjercicio.values.flatten()
         .filter { it.done }
         .fold(0f) { acc, serie ->
@@ -62,13 +77,18 @@ fun SesionEntrenamientoScreen(
                 tonalElevation = 4.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                Column(Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                ) {
+                    // Mostrar el volumen total calculado
                     Text(
                         "Volumen total: ${"%.0f".format(volumenTotal)} kg",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
+                    // Botón para finalizar la sesión
                     Button(
                         onClick = onFinalizarSesion,
                         modifier = Modifier.fillMaxWidth()
@@ -79,17 +99,22 @@ fun SesionEntrenamientoScreen(
             }
         }
     ) { innerPadding ->
+        // Lista perezosa que muestra todos los ejercicios de la rutina
         LazyColumn(
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = innerPadding.calculateTopPadding(),
-                bottom = 100.dp // Deja espacio para el bottomBar
+                bottom = 100.dp // Espacio para el bottomBar
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(ejerciciosEnRutina) { ejercicioEnRutina ->
+
+                // Buscar los datos del ejercicio predefinido asociado
                 val ejercicio = ejerciciosPredefinidos.find { it.id == ejercicioEnRutina.ejercicioPredefinidoId }
+
+                // Obtener o inicializar la lista de series para este ejercicio
                 val series = seriesPorEjercicio.getOrPut(ejercicioEnRutina.id) { mutableStateListOf() }
 
                 Card(
@@ -98,6 +123,7 @@ fun SesionEntrenamientoScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(Modifier.padding(16.dp)) {
+                        // Nombre del ejercicio
                         Text(
                             text = ejercicio?.nombre ?: "Ejercicio",
                             style = MaterialTheme.typography.titleLarge,
@@ -105,6 +131,7 @@ fun SesionEntrenamientoScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
 
+                        // Iterar y mostrar cada serie con sus controles
                         series.forEachIndexed { index, serie ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -118,6 +145,7 @@ fun SesionEntrenamientoScreen(
                                     style = MaterialTheme.typography.bodyMedium
                                 )
 
+                                // Campo para ingresar repeticiones
                                 OutlinedTextField(
                                     value = serie.reps,
                                     onValueChange = { serie.reps = it },
@@ -127,6 +155,7 @@ fun SesionEntrenamientoScreen(
                                         .padding(horizontal = 4.dp)
                                 )
 
+                                // Campo para ingresar peso en kg
                                 OutlinedTextField(
                                     value = serie.kg,
                                     onValueChange = { serie.kg = it },
@@ -136,10 +165,13 @@ fun SesionEntrenamientoScreen(
                                         .padding(horizontal = 4.dp)
                                 )
 
+                                // Checkbox para marcar si la serie está completada
                                 Checkbox(
                                     checked = serie.done,
                                     onCheckedChange = {
                                         serie.done = it
+                                        // Si la serie se marca como completada y la sesión está iniciada,
+                                        // se registra la serie en el ViewModel
                                         if (it && sesionId != null) {
                                             rutinaViewModel.registrarSerieSesion(
                                                 sesionRutinaId = sesionId!!.toInt(),
@@ -155,6 +187,7 @@ fun SesionEntrenamientoScreen(
                             }
                         }
 
+                        // Botón para agregar una nueva serie vacía
                         Button(
                             onClick = { series.add(SerieUI()) },
                             modifier = Modifier
@@ -170,6 +203,9 @@ fun SesionEntrenamientoScreen(
     }
 }
 
+/**
+ * Clase que representa una serie en la UI con campos editables para reps, kg y estado completado.
+ */
 class SerieUI {
     var reps by mutableStateOf(TextFieldValue(""))
     var kg by mutableStateOf(TextFieldValue(""))

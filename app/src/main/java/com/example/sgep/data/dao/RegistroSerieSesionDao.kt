@@ -4,20 +4,28 @@ import androidx.room.*
 import com.example.sgep.data.entity.RegistroSerieSesionEntity
 
 /**
- * Aquí almacenamos lo que realmente hizo el usuario en cada serie durante una sesión.
- * Así puedes analizar el desempeño real.
+ * DAO para registrar y consultar el desempeño real del usuario durante cada serie
+ * en una sesión de entrenamiento.
+ * Este registro permite analizar lo que el usuario efectivamente ejecutó.
  */
 @Dao
 interface RegistroSerieSesionDao {
+
+    /**
+     * Inserta un nuevo registro de serie realizada durante una sesión.
+     *
+     * @param registro Objeto [RegistroSerieSesionEntity] que representa la serie ejecutada.
+     * @return ID generado automáticamente para el registro insertado.
+     */
     @Insert
     suspend fun insert(registro: RegistroSerieSesionEntity): Long
 
-    @Query("SELECT * FROM registro_serie_sesion WHERE sesionRutinaId = :sesionRutinaId AND ejercicioEnRutinaId = :ejercicioEnRutinaId")
-    suspend fun getBySesionAndEjercicio(sesionRutinaId: Int, ejercicioEnRutinaId: Int): List<RegistroSerieSesionEntity>
-
-    @Query("SELECT * FROM registro_serie_sesion WHERE sesionRutinaId = :sesionRutinaId")
-    suspend fun getBySesion(sesionRutinaId: Int): List<RegistroSerieSesionEntity>
-
+    /**
+     * Obtiene todos los registros relacionados a un ejercicio específico en todas las sesiones.
+     *
+     * @param ejercicioEnRutinaId ID del ejercicio dentro de la rutina.
+     * @return Lista de [RegistroSerieSesionEntity] para ese ejercicio.
+     */
     @Query("SELECT * FROM registro_serie_sesion WHERE ejercicioEnRutinaId = :ejercicioEnRutinaId")
     suspend fun getByEjercicioEnRutinaId(ejercicioEnRutinaId: Int): List<RegistroSerieSesionEntity>
 }

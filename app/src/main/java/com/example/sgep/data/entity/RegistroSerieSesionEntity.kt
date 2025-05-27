@@ -5,8 +5,24 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 /**
- * RegistroSerieSesionEntity almacena el resultado real de cada serie durante una sesión de rutina.
- * Así puedes guardar lo que realmente hizo el usuario (peso, reps, si la terminó, etc.).
+ * Registra el resultado real de una serie ejecutada durante una sesión de entrenamiento.
+ *
+ * Esta entidad captura la ejecución concreta de cada serie, comparando el rendimiento real
+ * con lo planeado en [SerieEjercicioEntity]. Está relacionada con:
+ * - [SesionRutinaEntity] (sesión padre)
+ * - [EjercicioEnRutinaEntity] (ejercicio específico)
+ *
+ * @property id Identificador único autogenerado.
+ * @property sesionRutinaId Referencia a la sesión donde se registró (clave foránea a [SesionRutinaEntity]).
+ * @property ejercicioEnRutinaId Ejercicio concreto realizado (clave foránea a [EjercicioEnRutinaEntity]).
+ * @property numeroSerie Número ordinal de la serie (debe coincidir con [SerieEjercicioEntity.numeroSerie]).
+ * @property peso Peso realmente utilizado (kg). Puede diferir del peso planeado.
+ * @property repeticiones Número de repeticiones realmente completadas.
+ * @property completada Indica si la serie se finalizó completamente. Valor por defecto: false.
+ *
+ * @see SerieEjercicioEntity Para la configuración planeada de la serie.
+ * @see SesionRutinaEntity Para el contexto de la sesión de entrenamiento.
+ * @see EjercicioEnRutinaEntity Para los detalles del ejercicio en la rutina.
  */
 @Entity(
     tableName = "registro_serie_sesion",
@@ -15,22 +31,23 @@ import androidx.room.PrimaryKey
             entity = SesionRutinaEntity::class,
             parentColumns = ["id"],
             childColumns = ["sesionRutinaId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE // Elimina registros si se borra la sesión
         ),
         ForeignKey(
             entity = EjercicioEnRutinaEntity::class,
             parentColumns = ["id"],
             childColumns = ["ejercicioEnRutinaId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE // Elimina registros si se borra el ejercicio
         )
     ]
 )
 data class RegistroSerieSesionEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val sesionRutinaId: Int,         // A qué sesión corresponde
-    val ejercicioEnRutinaId: Int,    // Qué ejercicio fue (dentro de la rutina)
-    val numeroSerie: Int,            // Serie 1, 2, 3...
-    val peso: Float,                 // Peso real que usó el usuario
-    val repeticiones: Int,           // Reps reales hechas
-    val completada: Boolean = false  // Si terminó la serie
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    val sesionRutinaId: Int,
+    val ejercicioEnRutinaId: Int,
+    val numeroSerie: Int,
+    val peso: Float,
+    val repeticiones: Int,
+    val completada: Boolean = false
 )

@@ -25,6 +25,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 
+/**
+ * Pantalla de registro que permite a un usuario crear una cuenta.
+ *
+ * @param viewModel ViewModel para manejar la lógica de registro.
+ * @param onBack Lambda que se ejecuta para regresar a la pantalla anterior.
+ * @param onRegisterSuccess Lambda que se ejecuta tras un registro exitoso para continuar el flujo.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -44,10 +51,29 @@ fun RegisterScreen(
 
     val registerMessage by viewModel.registerResult.collectAsStateWithLifecycle()
 
+    // Limpiar estado anterior al entrar a la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.clearRegisterResult()
+    }
+
+    // Manejo del mensaje de resultado de registro
     LaunchedEffect(registerMessage) {
         if (registerMessage == "Registro exitoso") {
+            // Limpiar campos del formulario
+            fullName = ""
+            email = ""
+            password = ""
+            confirmPassword = ""
+            goal = ""
+
+            // Pequeño delay para mostrar mensaje antes de navegar
             delay(1000)
+
+            // Continuar flujo (ej: volver a login)
             onRegisterSuccess()
+
+            // Limpiar mensaje de éxito
+            viewModel.clearRegisterResult()
         }
     }
 
@@ -128,13 +154,17 @@ fun RegisterScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = "Correo Electrónico",
-                keyboardType = KeyboardType.Email
+                keyboardType = KeyboardType.Email,
+                isError = emailError.isNotEmpty(),
+                errorMessage = emailError
             )
 
             PasswordField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Contraseña"
+                label = "Contraseña",
+                isError = passwordError.isNotEmpty(),
+                errorMessage = passwordError
             )
 
             PasswordField(
@@ -155,8 +185,6 @@ fun RegisterScreen(
 
             Button(
                 onClick = {
-                    // Limpiar mensajes anteriores
-                    viewModel.clearRegisterResult()
                     // Validar antes de enviar
                     viewModel.register(
                         nombre = fullName,
@@ -194,6 +222,17 @@ fun RegisterScreen(
     }
 }
 
+/**
+ * Campo de texto genérico con etiqueta y validación.
+ *
+ * @param value Valor actual del campo.
+ * @param onValueChange Lambda para actualizar el valor.
+ * @param label Texto para la etiqueta del campo.
+ * @param keyboardType Tipo de teclado a mostrar.
+ * @param isOptional Indica si el campo es opcional. Por defecto es false.
+ * @param isError Indica si el campo tiene error. Por defecto es false.
+ * @param errorMessage Mensaje de error a mostrar si isError es true.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InputField(
@@ -240,6 +279,15 @@ private fun InputField(
     }
 }
 
+/**
+ * Campo para ingresar contraseña con visibilidad alternable y validación.
+ *
+ * @param value Valor actual del campo de contraseña.
+ * @param onValueChange Lambda para actualizar el valor.
+ * @param label Texto para la etiqueta del campo.
+ * @param isError Indica si el campo tiene error. Por defecto es false.
+ * @param errorMessage Mensaje de error a mostrar si isError es true.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PasswordField(
