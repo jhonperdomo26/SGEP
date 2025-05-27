@@ -2,6 +2,7 @@ package com.example.sgep.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sgep.data.dao.errors.MedidasError
 import com.example.sgep.data.entity.MedidaCorporalEntity
 import com.example.sgep.domain.usecase.MedidaCorporalUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,29 +11,40 @@ import kotlinx.coroutines.launch
 
 /**
  * ViewModel para gestionar el estado y las operaciones relacionadas con medidas corporales.
- * Recibe el caso de uso necesario (inyectado por constructor o factory).
+ *
+ * Este ViewModel interactúa con el [MedidaCorporalUseCase] para manejar la lógica de negocio,
+ * como obtener, registrar y calcular diferencias entre medidas corporales.
+ *
+ * @property useCase Caso de uso para la gestión de medidas corporales.
  */
 class MedidaCorporalViewModel(
     private val useCase: MedidaCorporalUseCase
 ) : ViewModel() {
 
-    // --- Estado para la lista de medidas ---
+    /** Flujo que emite errores específicos relacionados con las medidas corporales. */
+    private val _error = MutableStateFlow<MedidasError?>(null)
+    val error: StateFlow<MedidasError?> = _error
+
+    /** Flujo que mantiene la lista actual de medidas corporales del usuario. */
     private val _medidas = MutableStateFlow<List<MedidaCorporalEntity>>(emptyList())
     val medidas: StateFlow<List<MedidaCorporalEntity>> get() = _medidas
 
-    // --- Estado para la medida seleccionada ---
+    /** Flujo que mantiene la medida corporal actualmente seleccionada. */
     private val _medidaSeleccionada = MutableStateFlow<MedidaCorporalEntity?>(null)
-    val medidaSeleccionada: StateFlow<MedidaCorporalEntity?> get() = _medidaSeleccionada
 
-    // --- Estado para mensajes/errores ---
+    /** Flujo que emite mensajes informativos o de error para la UI. */
     private val _mensaje = MutableStateFlow<String?>(null)
     val mensaje: StateFlow<String?> get() = _mensaje
 
-    // --- Estado para diferencias entre medidas ---
+    /** Flujo que contiene las diferencias calculadas entre dos medidas corporales. */
     private val _diferencias = MutableStateFlow<Map<String, Float>?>(null)
     val diferencias: StateFlow<Map<String, Float>?> get() = _diferencias
 
-    // --- Cargar todas las medidas de un usuario ---
+    /**
+     * Carga todas las medidas corporales asociadas a un usuario dado.
+     *
+     * @param userId Identificador del usuario.
+     */
     fun cargarMedidas(userId: Int) {
         viewModelScope.launch {
             try {
@@ -43,14 +55,19 @@ class MedidaCorporalViewModel(
         }
     }
 
-    // --- Registrar una nueva medida ---
+    /**
+     * Registra una nueva medida corporal para un usuario.
+     *
+     * @param userId Identificador del usuario.
+     * @param medida Objeto que contiene los datos de la medida corporal a registrar.
+     */
     fun registrarMedida(userId: Int, medida: MedidaCorporalEntity) {
         viewModelScope.launch {
             try {
                 val resultado = useCase.registrarMedida(userId, medida)
                 resultado.onSuccess {
                     _mensaje.value = "Medida registrada correctamente"
-                    cargarMedidas(userId) // Actualizar la lista
+                    cargarMedidas(userId) // Actualiza la lista tras registro exitoso
                 }.onFailure { error ->
                     _mensaje.value = "Error al registrar medida: ${error.message}"
                 }
@@ -60,7 +77,11 @@ class MedidaCorporalViewModel(
         }
     }
 
-    // --- Seleccionar una medida específica ---
+    /**
+     * Selecciona una medida corporal por su ID para mostrar o editar.
+     *
+     * @param medidaId Identificador de la medida corporal a seleccionar.
+     */
     fun seleccionarMedida(medidaId: Int) {
         viewModelScope.launch {
             try {
@@ -71,44 +92,12 @@ class MedidaCorporalViewModel(
         }
     }
 
-    // --- Actualizar una medida existente ---
-    fun actualizarMedida(medida: MedidaCorporalEntity) {
-        viewModelScope.launch {
-            try {
-                useCase.actualizarMedida(medida)
-                _mensaje.value = "Medida actualizada correctamente"
-                cargarMedidas(medida.userId)
-            } catch (e: Exception) {
-                _mensaje.value = "Error al actualizar medida: ${e.message}"
-            }
-        }
-    }
-
-    // --- Eliminar una medida ---
-    fun eliminarMedida(medida: MedidaCorporalEntity) {
-        viewModelScope.launch {
-            try {
-                useCase.eliminarMedida(medida)
-                _mensaje.value = "Medida eliminada correctamente"
-                medida.userId?.let { cargarMedidas(it) } // Actualizar lista si tenemos userId
-            } catch (e: Exception) {
-                _mensaje.value = "Error al eliminar medida: ${e.message}"
-            }
-        }
-    }
-
-    // --- Obtener la última medida registrada ---
-    fun obtenerUltimaMedida(userId: Int) {
-        viewModelScope.launch {
-            try {
-                _medidaSeleccionada.value = useCase.obtenerUltimaMedida(userId)
-            } catch (e: Exception) {
-                _mensaje.value = "Error al obtener última medida: ${e.message}"
-            }
-        }
-    }
-
-    // --- Calcular diferencias entre dos medidas ---
+    /**
+     * Calcula las diferencias entre una medida corporal actual y una anterior.
+     *
+     * @param medidaActual Medida corporal más reciente.
+     * @param medidaAnterior Medida corporal previa con la que se compara.
+     */
     fun calcularDiferencias(medidaActual: MedidaCorporalEntity, medidaAnterior: MedidaCorporalEntity) {
         try {
             _diferencias.value = useCase.calcularDiferencias(medidaActual, medidaAnterior)
@@ -117,18 +106,27 @@ class MedidaCorporalViewModel(
         }
     }
 
-    // --- Limpiar mensajes ---
+    /** Limpia el mensaje actual, usualmente usado para ocultar notificaciones en la UI. */
     fun limpiarMensaje() {
         _mensaje.value = null
     }
 
-    // --- Limpiar medida seleccionada ---
-    fun limpiarMedidaSeleccionada() {
-        _medidaSeleccionada.value = null
-    }
-
-    // --- Limpiar diferencias ---
+    /** Limpia las diferencias calculadas. */
     fun limpiarDiferencias() {
         _diferencias.value = null
+    }
+
+    /** Limpia el error actual. */
+    fun limpiarError() {
+        _error.value = null
+    }
+
+    /**
+     * Establece un error específico relacionado con medidas corporales.
+     *
+     * @param error Error a establecer.
+     */
+    fun setError(error: MedidasError) {
+        _error.value = error
     }
 }

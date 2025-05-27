@@ -21,11 +21,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import com.example.sgep.data.dao.errors.MedidasError
 import com.example.sgep.data.entity.MedidaCorporalEntity
 import com.example.sgep.viewmodel.MedidaCorporalViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Pantalla de registro que permite a un usuario crear una cuenta.
+ *
+ * @param medidaCorporalViewModel ViewModel para manejar la lógica de las medidas.
+ * @param onBack Lambda que se ejecuta para regresar a la pantalla anterior.
+ * @param userId Identificador del usuario actual, para cargar sus medidas.
+ * @param modifier Modifier opcional para personalizar el layout externo.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedidaCorporalScreen(
@@ -35,9 +44,10 @@ fun MedidaCorporalScreen(
     modifier: Modifier = Modifier
 ) {
     var showNewMeasureDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val error by viewModel.error.collectAsState()
     val medidas by viewModel.medidas.collectAsState()
     val mensaje by viewModel.mensaje.collectAsState()
-    val medidaSeleccionada by viewModel.medidaSeleccionada.collectAsState()
     val diferencias by viewModel.diferencias.collectAsState()
 
     // Cargar medidas al entrar
@@ -45,10 +55,17 @@ fun MedidaCorporalScreen(
         viewModel.cargarMedidas(userId)
     }
 
-    // Mostrar mensajes
+    // Mostrar errores
+    error?.let { e ->
+        LaunchedEffect(e) {
+            SnackbarHostState().showSnackbar(e.message ?: "Ocurrió un error")
+            viewModel.limpiarError()
+        }
+    }
+
     if (mensaje != null) {
         LaunchedEffect(mensaje) {
-            SnackbarHostState().showSnackbar(mensaje!!)
+            snackbarHostState.showSnackbar(mensaje!!)
             viewModel.limpiarMensaje()
         }
     }
@@ -68,6 +85,7 @@ fun MedidaCorporalScreen(
             )
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = { Text("Medidas Corporales") },
@@ -87,7 +105,7 @@ fun MedidaCorporalScreen(
                     Icon(Icons.Default.Add, contentDescription = "Nueva medida")
                 }
             },
-            containerColor = Color.Transparent // 👈 Importante para que el degradado no sea tapado
+            containerColor = Color.Transparent
         ) { padding ->
             Column(
                 modifier = Modifier
@@ -116,6 +134,7 @@ fun MedidaCorporalScreen(
         if (showNewMeasureDialog) {
             NewMeasureDialog(
                 userId = userId,
+                viewModel = viewModel,
                 onDismiss = { showNewMeasureDialog = false },
                 onSave = { nuevaMedida ->
                     viewModel.registrarMedida(userId, nuevaMedida)
@@ -333,6 +352,7 @@ private fun MeasureItem(
 @Composable
 private fun NewMeasureDialog(
     userId: Int,
+    viewModel: MedidaCorporalViewModel,
     onDismiss: () -> Unit,
     onSave: (MedidaCorporalEntity) -> Unit
 ) {
@@ -354,7 +374,9 @@ private fun NewMeasureDialog(
     var antebrazoDer by remember { mutableStateOf("") }
 
     // Validación básica de campos requeridos
-    val camposRequeridos = listOf(peso, cintura)
+    val camposRequeridos = listOf(peso, cuello, hombros, pecho,
+        cintura, cadera, gluteos, musloIzq, musloDer, gemeloIzq,
+        gemeloDer, bicepsIzq, bicepsDer, antebrazoIzq, antebrazoDer)
     val camposValidos = camposRequeridos.all { it.isNotBlank() && it.toFloatOrNull() != null }
 
     AlertDialog(
@@ -369,7 +391,11 @@ private fun NewMeasureDialog(
                 Text("Medidas Principales", style = MaterialTheme.typography.labelLarge)
                 OutlinedTextField(
                     value = peso,
-                    onValueChange = { peso = it },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            peso = it
+                        }
+                    },
                     label = { Text("Peso (kg)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -378,38 +404,62 @@ private fun NewMeasureDialog(
                 Text("Tronco", style = MaterialTheme.typography.labelLarge)
                 OutlinedTextField(
                     value = cuello,
-                    onValueChange = { cuello = it },
-                    label = { Text("Cuello (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            cuello = it
+                        }
+                    },
+                    label = { Text("Cuello (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = hombros,
-                    onValueChange = { hombros = it },
-                    label = { Text("Hombros (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            hombros = it
+                        }
+                    },
+                    label = { Text("Hombros (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = pecho,
-                    onValueChange = { pecho = it },
-                    label = { Text("Pecho (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            pecho = it
+                        }
+                    },
+                    label = { Text("Pecho (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = cintura,
-                    onValueChange = { cintura = it },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            cintura = it
+                        }
+                    },
                     label = { Text("Cintura (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = cadera,
-                    onValueChange = { cadera = it },
-                    label = { Text("Cadera (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            cadera = it
+                        }
+                    },
+                    label = { Text("Cadera (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = gluteos,
-                    onValueChange = { gluteos = it },
-                    label = { Text("Glúteos (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            gluteos = it
+                        }
+                    },
+                    label = { Text("Glúteos (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -417,50 +467,82 @@ private fun NewMeasureDialog(
                 Text("Extremidades", style = MaterialTheme.typography.labelLarge)
                 OutlinedTextField(
                     value = musloIzq,
-                    onValueChange = { musloIzq = it },
-                    label = { Text("Muslo Izquierdo (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            musloIzq = it
+                        }
+                    },
+                    label = { Text("Muslo Izquierdo (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = musloDer,
-                    onValueChange = { musloDer = it },
-                    label = { Text("Muslo Derecho (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            musloDer = it
+                        }
+                    },
+                    label = { Text("Muslo Derecho (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = gemeloIzq,
-                    onValueChange = { gemeloIzq = it },
-                    label = { Text("Gemelo Izquierdo (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            gemeloIzq = it
+                        }
+                    },
+                    label = { Text("Gemelo Izquierdo (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = gemeloDer,
-                    onValueChange = { gemeloDer = it },
-                    label = { Text("Gemelo Derecho (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            gemeloDer = it
+                        }
+                    },
+                    label = { Text("Gemelo Derecho (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = bicepsIzq,
-                    onValueChange = { bicepsIzq = it },
-                    label = { Text("Bíceps Izquierdo (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            bicepsIzq = it
+                        }
+                    },
+                    label = { Text("Bíceps Izquierdo (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = bicepsDer,
-                    onValueChange = { bicepsDer = it },
-                    label = { Text("Bíceps Derecho (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            bicepsDer = it
+                        }
+                    },
+                    label = { Text("Bíceps Derecho (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = antebrazoIzq,
-                    onValueChange = { antebrazoIzq = it },
-                    label = { Text("Antebrazo Izquierdo (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            antebrazoIzq = it
+                        }
+                    },
+                    label = { Text("Antebrazo Izquierdo (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = antebrazoDer,
-                    onValueChange = { antebrazoDer = it },
-                    label = { Text("Antebrazo Derecho (cm)") },
+                    onValueChange = {
+                        if (it.isEmpty() || it.toFloatOrNull()?.let { v -> v >= 0 } == true) {
+                            antebrazoDer = it
+                        }
+                    },
+                    label = { Text("Antebrazo Derecho (cm)*") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -468,28 +550,46 @@ private fun NewMeasureDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    onSave(
-                        MedidaCorporalEntity(
+                    try {
+                        val medida = MedidaCorporalEntity(
                             userId = userId,
                             fecha = System.currentTimeMillis(),
-                            peso = peso.toFloatOrNull() ?: 0f,
-                            cuello = cuello.toFloatOrNull() ?: 0f,
-                            hombros = hombros.toFloatOrNull() ?: 0f,
-                            pecho = pecho.toFloatOrNull() ?: 0f,
-                            cintura = cintura.toFloatOrNull() ?: 0f,
-                            cadera = cadera.toFloatOrNull() ?: 0f,
-                            gluteos = gluteos.toFloatOrNull() ?: 0f,
-                            musloIzq = musloIzq.toFloatOrNull() ?: 0f,
-                            musloDer = musloDer.toFloatOrNull() ?: 0f,
-                            gemeloIzq = gemeloIzq.toFloatOrNull() ?: 0f,
-                            gemeloDer = gemeloDer.toFloatOrNull() ?: 0f,
-                            bicepsIzq = bicepsIzq.toFloatOrNull() ?: 0f,
-                            bicepsDer = bicepsDer.toFloatOrNull() ?: 0f,
-                            antebrazoIzq = antebrazoIzq.toFloatOrNull() ?: 0f,
-                            antebrazoDer = antebrazoDer.toFloatOrNull() ?: 0f
+                            peso = peso.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Peso"),
+                            cintura = cintura.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Cintura"),
+                            cuello = cuello.toFloatOrNull()?.takeIf { it > 0 } ?:
+                            throw MedidasError.ValorNegativo("Cuello"),
+                            hombros = hombros.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Hombros"),
+                            pecho = pecho.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Pecho"),
+                            cadera = cadera.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Cadera"),
+                            gluteos = gluteos.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Gluteos"),
+                            musloIzq = musloIzq.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Muslo izquierda"),
+                            musloDer = musloDer.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Muslo derecho"),
+                            gemeloIzq = gemeloIzq.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Gemelo izquierdo"),
+                            gemeloDer = gemeloDer.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Gemelo derecho"),
+                            bicepsIzq = bicepsIzq.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Biceps izquierdo"),
+                            bicepsDer = bicepsDer.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Biceps derecho"),
+                            antebrazoIzq = antebrazoIzq.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Antebrazo izquierdo"),
+                            antebrazoDer = antebrazoDer.toFloatOrNull()?.takeIf { it > 0 }
+                                ?: throw MedidasError.ValorNegativo("Antebrazo derecho"),
                         )
-                    )
-                    onDismiss()
+                        onSave(medida)
+                        onDismiss()
+                    } catch (e: MedidasError) {
+                        viewModel.setError(e)
+                    }
                 },
                 enabled = camposValidos
             ) {

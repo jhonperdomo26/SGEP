@@ -4,12 +4,17 @@ import com.example.sgep.data.repository.UserRepository
 import com.example.sgep.data.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
-class LoginUseCase ( private val userRepository: UserRepository ) {
+/**
+ * Caso de uso para el manejo de autenticación de usuarios.
+ */
+class LoginUseCase(private val userRepository: UserRepository) {
+
     /**
-     * Realiza el proceso de autenticación del usuario.
+     * Realiza la autenticación de un usuario usando correo y contraseña.
+     *
      * @param email Correo electrónico del usuario.
-     * @param password Contraseña sin hashear.
-     * @return El usuario autenticado o null si las credenciales son incorrectas.
+     * @param password Contraseña en texto plano (sin hash).
+     * @return Usuario autenticado si las credenciales son correctas, o null en caso contrario.
      */
     suspend fun login(email: String, password: String): UserEntity? {
         val user = userRepository.getUserByEmail(email)
@@ -21,18 +26,10 @@ class LoginUseCase ( private val userRepository: UserRepository ) {
     }
 
     /**
-     * Obtiene el usuario actualmente logueado (último usuario en la base de datos).
-     * @return Flow con el usuario actual o null si no hay sesión activa.
+     * Obtiene un Flow con el usuario actualmente logueado o null si no hay sesión activa.
+     * La implementación devuelve el último usuario registrado o la sesión activa según el repositorio.
+     *
+     * @return Flow de UserEntity? representando el usuario actual.
      */
-    fun getCurrentUser(): Flow<UserEntity?> {
-        return userRepository.getCurrentUserFlow()
-    }
-
-    /**
-     * Cierra la sesión actual del usuario.
-     */
-    suspend fun logout() {
-        // En una implementación más avanzada, podríamos marcar explícitamente el logout
-        // pero con el diseño actual, simplemente no tendremos un usuario "actual"
-    }
+    fun getCurrentUser(): Flow<UserEntity?> = userRepository.getCurrentUserFlow()
 }

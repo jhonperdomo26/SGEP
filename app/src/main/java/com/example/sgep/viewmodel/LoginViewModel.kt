@@ -12,25 +12,37 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel encargado de gestionar el estado y la lógica relacionada con
+ * el inicio y cierre de sesión del usuario.
+ *
+ * Provee estados reactivos que permiten a la UI observar cambios en el usuario actual
+ * y los resultados de las operaciones de login y registro.
+ *
+ * @property application Contexto de la aplicación, requerido para acceso a la base de datos.
+ */
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     private val loginUseCase: LoginUseCase
 
+    /**
+     * Estado observable que contiene el usuario actualmente autenticado.
+     */
     private val _currentUser = MutableStateFlow<UserEntity?>(null)
     val currentUser: StateFlow<UserEntity?> get() = _currentUser
 
+    /**
+     * Estado observable con mensajes relacionados al resultado del proceso de login.
+     */
     private val _loginResult = MutableStateFlow("")
     val loginResult: StateFlow<String> get() = _loginResult
-
-    private val _registerResult = MutableStateFlow("")
-    val registerResult: StateFlow<String> get() = _registerResult
 
     init {
         val db = AppDatabase.getDatabase(application)
         val userRepository = UserRepository(db.userDao())
         loginUseCase = LoginUseCase(userRepository)
 
-        // Cargar usuario actual al iniciar
+        // Cargar el usuario actualmente autenticado al iniciar el ViewModel
         viewModelScope.launch {
             loginUseCase.getCurrentUser().collect { user ->
                 _currentUser.value = user
@@ -38,6 +50,13 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Realiza el intento de inicio de sesión con las credenciales proporcionadas.
+     *
+     * @param email Correo electrónico del usuario.
+     * @param password Contraseña del usuario.
+     * Actualiza [loginResult] con mensajes de éxito o error según corresponda.
+     */
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
             _loginResult.value = "Por favor, complete todos los campos."
@@ -62,6 +81,10 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Cierra la sesión del usuario actualmente autenticado,
+     * limpiando los estados relacionados.
+     */
     fun logout() {
         viewModelScope.launch {
             _currentUser.value = null

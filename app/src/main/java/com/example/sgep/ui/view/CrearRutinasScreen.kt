@@ -8,10 +8,25 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.sgep.data.entity.EjercicioEnRutinaEntity
-import com.example.sgep.data.entity.EjercicioPredefinidoEntity
 import com.example.sgep.viewmodel.RutinaViewModel
 
+/**
+ * Pantalla para crear una nueva rutina personalizada.
+ * Permite al usuario ingresar un nombre, seleccionar ejercicios predefinidos
+ * y crear una rutina que se asocia a su ID.
+ *
+ * Características:
+ * - Campo de texto para nombrar la rutina.
+ * - Botón para confirmar la creación de la rutina.
+ * - Lista de ejercicios predefinidos disponibles para agregar.
+ * - Lista de ejercicios ya agregados a la rutina (desde el ViewModel).
+ *
+ * Nota: La asociación de ejercicios a la rutina requiere que la rutina haya sido creada previamente.
+ *
+ * @param userId ID del usuario que está creando la rutina. Se asocia con la nueva rutina creada.
+ * @param rutinaViewModel ViewModel encargado de manejar la lógica de negocio relacionada con las rutinas.
+ * @param onRutinaCreada Función de callback que se invoca cuando la rutina ha sido creada exitosamente.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrearRutinaScreen(

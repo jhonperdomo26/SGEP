@@ -1,12 +1,26 @@
 package com.example.sgep.domain.usecase
 
 import com.example.sgep.data.repository.UserRepository
-import kotlinx.coroutines.flow.Flow
 
+/**
+ * Caso de uso para el registro y verificación de usuarios en el sistema.
+ *
+ * Proporciona funcionalidades para registrar nuevos usuarios
+ * y para verificar si un correo electrónico ya está registrado.
+ *
+ * @property userRepository Repositorio para operaciones relacionadas con usuarios.
+ */
 class RegisterUseCase(private val userRepository: UserRepository) {
+
     /**
-     * Registra un nuevo usuario en la base de datos.
-     * @return Result<Long> con el ID del usuario registrado o un mensaje de error
+     * Registra un nuevo usuario con los datos proporcionados.
+     *
+     * @param nombre Nombre completo del usuario.
+     * @param email Correo electrónico único del usuario.
+     * @param password Contraseña segura para la cuenta.
+     * @param objetivo Objetivo personal o meta del usuario (por ejemplo, "ganar músculo").
+     * @return Result<Long> con el ID generado del usuario registrado si la operación es exitosa,
+     *         o un Result.failure con el error ocurrido.
      */
     suspend fun registerUser(
         nombre: String,
@@ -20,12 +34,5 @@ class RegisterUseCase(private val userRepository: UserRepository) {
             password = password,
             objetivo = objetivo
         )
-    }
-
-    /**
-     * Verifica si un email ya está registrado
-     */
-    suspend fun isEmailRegistered(email: String): Boolean {
-        return userRepository.getUserByEmail(email) != null
     }
 }

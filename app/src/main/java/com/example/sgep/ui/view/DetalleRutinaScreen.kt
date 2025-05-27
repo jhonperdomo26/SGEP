@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sgep.data.entity.RutinaEntity
 import com.example.sgep.data.entity.EjercicioEnRutinaEntity
@@ -24,6 +23,24 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Pantalla de detalle para una rutina específica. Muestra la información general de la rutina
+ * (nombre, fecha de creación) y la lista de ejercicios que contiene. Permite:
+ * - Agregar un ejercicio predefinido a la rutina.
+ * - Eliminar la rutina.
+ * - Navegar a la pantalla de estadísticas de un ejercicio.
+ * - Iniciar una nueva sesión de entrenamiento.
+ *
+ * @param rutina Objeto [RutinaEntity] que contiene los datos de la rutina actual.
+ * @param rutinaViewModel ViewModel que gestiona la lógica de las rutinas.
+ * @param ejerciciosEnRutina Lista de ejercicios ya agregados a la rutina.
+ * @param ejerciciosPredefinidos Lista de todos los ejercicios disponibles para agregar.
+ * @param onAgregarEjercicio Función de callback que se invoca al agregar un ejercicio (recibe el ID del ejercicio).
+ * @param onEliminarRutina Función de callback que se invoca al eliminar la rutina (recibe el ID de usuario).
+ * @param onBack Función de callback para volver a la pantalla anterior.
+ * @param onIniciarSesion Función que se ejecuta al iniciar una nueva sesión de entrenamiento.
+ * @param navController Controlador de navegación para moverse entre pantallas.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleRutinaScreen(

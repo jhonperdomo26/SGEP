@@ -24,6 +24,18 @@ import android.graphics.Color as AndroidColor
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+/**
+ * Pantalla que muestra estadísticas detalladas sobre un ejercicio específico dentro de una rutina,
+ * incluyendo datos como el mejor 1RM estimado, el mayor peso levantado y el volumen por serie.
+ * Además, presenta gráficos por sesión sobre el progreso en 1RM, peso y volumen.
+ *
+ * @param ejercicioEnRutinaId ID del ejercicio dentro de la rutina (clave foránea para obtener series).
+ * @param nombreEjercicio Nombre codificado del ejercicio (será decodificado para mostrar).
+ * @param grupoMuscular Grupo muscular al que pertenece el ejercicio (codificado en URL).
+ * @param descripcion Descripción del ejercicio (codificada en URL).
+ * @param rutinaViewModel ViewModel que contiene la lógica de recuperación de series y datos.
+ * @param onBack Callback para volver a la pantalla anterior.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstadisticasEjercicioScreen(
@@ -56,7 +68,6 @@ fun EstadisticasEjercicioScreen(
     val volumenPorSesion = series.groupBy { it.sesionRutinaId }.mapValues { entry ->
         entry.value.fold(0f) { acc, serie -> acc + (serie.peso * serie.repeticiones) }
     }
-    val mejorVolumenSesion = volumenPorSesion.values.maxOrNull() ?: 0f
 
     val etiquetas = volumenPorSesion.keys.mapIndexed { index, _ -> "Sesión ${index + 1}" }
     val volumenValores = volumenPorSesion.values.toList()
@@ -69,11 +80,6 @@ fun EstadisticasEjercicioScreen(
         entry.value.maxOfOrNull { it.peso * (1 + it.repeticiones / 30f) } ?: 0f
     }.values.toList()
 
-    val volumenSeriePorSesion = series.groupBy { it.sesionRutinaId }.mapValues { entry ->
-        entry.value.maxOfOrNull { it.peso * it.repeticiones } ?: 0f
-    }.values.toList()
-
-    // ✅ Declaración del scrollState
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -120,19 +126,18 @@ fun EstadisticasEjercicioScreen(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("📊 Mayor peso levantado: ${"%.1f".format(mayorPeso)} kg")
                     Text("🏋️ Mejor 1RM estimado: $mejor1RM kg")
+                    Text("📊 Mayor peso levantado: ${"%.1f".format(mayorPeso)} kg")
                     Text("📈 Mejor volumen de serie: ${"%.1f".format(mejorVolumenSerie)} kg")
-                    Text("📦 Mejor volumen de sesión: ${"%.1f".format(mejorVolumenSesion)} kg")
                 }
             }
 
             if (volumenValores.isNotEmpty()) {
-                Text("Volumen por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
+                Text("Mejor 1RM estimado por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
-                    valores = volumenValores,
+                    valores = mejor1RMPorSesion,
                     etiquetas = etiquetas,
-                    titulo = "Volumen por sesión",
+                    titulo = "Mejor 1RM estimado por sesión",
                     modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
 
@@ -144,19 +149,11 @@ fun EstadisticasEjercicioScreen(
                     modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
 
-                Text("Mejor 1RM estimado por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                LineChartEstadisticas(
-                    valores = mejor1RMPorSesion,
-                    etiquetas = etiquetas,
-                    titulo = "Mejor 1RM estimado por sesión",
-                    modifier = Modifier.fillMaxWidth().height(250.dp)
-                )
-
                 Text("Mejor volumen de serie por sesión", style = MaterialTheme.typography.titleMedium, color = Color.White)
                 LineChartEstadisticas(
-                    valores = volumenSeriePorSesion,
+                    valores = volumenValores,
                     etiquetas = etiquetas,
-                    titulo = "Mejor volumen de serie por sesión",
+                    titulo = "Volumen por sesión",
                     modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
             } else {
@@ -166,6 +163,15 @@ fun EstadisticasEjercicioScreen(
     }
 }
 
+/**
+ * Componente que integra un gráfico de líneas usando MPAndroidChart para mostrar valores
+ * estadísticos con etiquetas en el eje X.
+ *
+ * @param valores Lista de valores flotantes a graficar.
+ * @param etiquetas Lista de etiquetas para el eje X (por ejemplo, nombres de sesiones).
+ * @param titulo Título que se mostrará como descripción del gráfico.
+ * @param modifier Modificador para ajustar el tamaño y disposición del gráfico.
+ */
 @Composable
 fun LineChartEstadisticas(
     valores: List<Float>,
@@ -220,4 +226,3 @@ fun LineChartEstadisticas(
         }
     )
 }
-

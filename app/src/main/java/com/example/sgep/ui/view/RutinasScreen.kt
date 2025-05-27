@@ -16,8 +16,16 @@ import com.example.sgep.viewmodel.RutinaViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Pantalla principal para mostrar todas las rutinas, crear nuevas
- * y permitir iniciar una sesión de entrenamiento.
+ * Pantalla principal que muestra todas las rutinas de un usuario.
+ * Permite crear nuevas rutinas y comenzar una sesión de entrenamiento
+ * basada en una rutina seleccionada.
+ *
+ * @param userId Identificador del usuario actual, para cargar sus rutinas.
+ * @param rutinaViewModel ViewModel que maneja la lógica y datos relacionados con las rutinas.
+ * @param onRutinaSeleccionada Callback que se ejecuta cuando el usuario selecciona una rutina
+ *                            para editar o ver detalles.
+ * @param onIniciarSesion Callback que se ejecuta cuando el usuario decide iniciar una sesión
+ *                        de entrenamiento con la rutina seleccionada.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,19 +35,30 @@ fun RutinasScreen(
     onRutinaSeleccionada: (RutinaEntity) -> Unit,
     onIniciarSesion: (rutinaId: Int) -> Unit
 ) {
+    // Estado que contiene la lista actualizada de rutinas del usuario
     val rutinas by rutinaViewModel.rutinas.collectAsState()
+
+    // Estado que contiene el mensaje para mostrar en Snackbar
     val mensaje by rutinaViewModel.mensaje.collectAsState()
+
+    // Estado local para controlar el nombre de la nueva rutina a crear
     var nombreRutina by remember { mutableStateOf("") }
+
+    // Estado para controlar si se debe mostrar el diálogo para crear rutina
     var showDialog by remember { mutableStateOf(false) }
 
+    // Estado para manejar el Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // CoroutineScope para lanzar efectos secundarios como mostrar Snackbar
     val scope = rememberCoroutineScope()
 
+    // Cargar rutinas al iniciar la composición, con userId para filtrar
     LaunchedEffect(Unit) {
         rutinaViewModel.cargarRutinas(userId)
     }
 
-    // Mostrar Snackbar y limpiar mensaje tras mostrarlo
+    // Mostrar Snackbar cuando cambia el mensaje y luego limpiar el mensaje en ViewModel
     LaunchedEffect(mensaje) {
         mensaje?.let {
             scope.launch {
@@ -57,6 +76,7 @@ fun RutinasScreen(
         Column(
             Modifier.fillMaxSize()
         ) {
+            // Título principal
             Text(
                 text = "Mis Rutinas",
                 style = MaterialTheme.typography.headlineMedium,
@@ -65,6 +85,7 @@ fun RutinasScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Botón para mostrar diálogo de creación de rutina nueva
             Button(
                 onClick = { showDialog = true },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -78,6 +99,7 @@ fun RutinasScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
+            // Lista de rutinas del usuario con LazyColumn
             LazyColumn(
                 Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -98,6 +120,7 @@ fun RutinasScreen(
                                 .fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            // Nombre de la rutina
                             Text(
                                 text = rutina.nombre,
                                 modifier = Modifier.weight(1f),
@@ -105,6 +128,8 @@ fun RutinasScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.width(12.dp))
+
+                            // Botón para iniciar sesión con esta rutina
                             Button(
                                 onClick = { onIniciarSesion(rutina.id) },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -123,6 +148,7 @@ fun RutinasScreen(
             }
         }
 
+        // Snackbar para mostrar mensajes de confirmación o error
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -152,6 +178,7 @@ fun RutinasScreen(
             }
         )
 
+        // Diálogo para crear una nueva rutina
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },

@@ -18,6 +18,9 @@ import com.example.sgep.viewmodel.MedidaCorporalViewModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
+/**
+ * Objeto que define las rutas de navegación dentro de la aplicación.
+ */
 object Routes {
     const val LOGIN = "login"
     const val REGISTER = "register"
@@ -25,8 +28,18 @@ object Routes {
 }
 
 /**
- * Navigation: NavHost principal de la app. Solo maneja login, registro y main.
- * El RutinaViewModel se pasa desde aquí para que esté disponible en MainScreen y sus pantallas hijas.
+ * Composable que configura la navegación principal de la aplicación utilizando NavHost.
+ *
+ * @param loginViewModel ViewModel que maneja la lógica de login y estado del usuario.
+ * @param registerViewModel ViewModel encargado de la lógica y estado de registro de usuario.
+ * @param rutinaViewModel ViewModel que gestiona las rutinas de entrenamiento.
+ * @param medidaCorporalViewModel ViewModel encargado de las medidas corporales.
+ *
+ * Provee las rutas y las pantallas correspondientes:
+ * - LoginScreen: Pantalla de inicio de sesión.
+ * - RegisterScreen: Pantalla para registrar nuevos usuarios.
+ * - MainScreen: Pantalla principal tras autenticación, recibe userId.
+ * - EstadisticasEjercicioScreen: Pantalla para mostrar estadísticas de un ejercicio en particular.
  */
 @Composable
 fun Navigation(
@@ -38,12 +51,14 @@ fun Navigation(
     val navController: NavHostController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Routes.LOGIN) {
+        // Pantalla de login
         composable(Routes.LOGIN) {
             LoginScreen(
-
                 onRegisterClick = { navController.navigate(Routes.REGISTER) },
                 onLoginSuccess = { user ->
+                    // Guardar usuario en el back stack para poder recuperarlo en pantallas siguientes
                     navController.currentBackStackEntry?.savedStateHandle?.set("user", user)
+                    // Navegar a la pantalla principal con el userId y limpiar la pila de navegación del login
                     navController.navigate("main/${user.id}") {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
@@ -52,18 +67,13 @@ fun Navigation(
             )
         }
 
-        // Pantalla de Registro
+        // Pantalla de registro de usuario
         composable(Routes.REGISTER) {
             RegisterScreen(
-                viewModel = registerViewModel, // Usar el ViewModel específico para registro
-
-                // Volver atrás (a login) cuando se hace clic en "Ya tengo cuenta"
+                viewModel = registerViewModel,
                 onBack = { navController.popBackStack() },
-
-                // Manejar registro exitoso:
-                // 1. Navegar a pantalla de login
-                // 2. Eliminar pantalla de registro del back stack
                 onRegisterSuccess = {
+                    // Volver a login y limpiar la pila de registro para evitar volver atrás
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(Routes.REGISTER) { inclusive = true }
                     }
@@ -71,7 +81,7 @@ fun Navigation(
             )
         }
 
-        // ✅ Cambio 3: nueva ruta que recibe userId como argumento
+        // Pantalla principal, recibe userId como parámetro
         composable("main/{userId}") { backStackEntry ->
             val user = navController.previousBackStackEntry?.savedStateHandle?.get<UserEntity>("user")
             val userId = backStackEntry.arguments?.getString("userId")?.toIntOrNull() ?: 0
@@ -83,6 +93,7 @@ fun Navigation(
                 loginViewModel = loginViewModel,
                 onLogout = {
                     loginViewModel.logout()
+                    // Navegar a login limpiando la pila de la pantalla principal
                     navController.navigate(Routes.LOGIN) {
                         popUpTo("main/{userId}") { inclusive = true }
                     }
@@ -92,8 +103,12 @@ fun Navigation(
             )
         }
 
-        composable("estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}/{grupoMuscular}/{descripcion}") { backStackEntry ->
-            val ejercicioEnRutinaId = backStackEntry.arguments?.getString("ejercicioEnRutinaId")?.toIntOrNull() ?: return@composable
+        // Pantalla para mostrar estadísticas de un ejercicio específico en una rutina
+        composable(
+            "estadisticas_ejercicio/{ejercicioEnRutinaId}/{nombreEjercicio}/{grupoMuscular}/{descripcion}"
+        ) { backStackEntry ->
+            val ejercicioEnRutinaId = backStackEntry.arguments?.getString("ejercicioEnRutinaId")?.toIntOrNull()
+                ?: return@composable
 
             val nombreEjercicio = URLDecoder.decode(
                 backStackEntry.arguments?.getString("nombreEjercicio") ?: "Ejercicio",
@@ -117,7 +132,5 @@ fun Navigation(
                 onBack = { navController.popBackStack() }
             )
         }
-
-
     }
 }

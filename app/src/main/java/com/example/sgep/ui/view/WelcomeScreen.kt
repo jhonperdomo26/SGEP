@@ -1,5 +1,6 @@
 package com.example.sgep.ui.view
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,12 +13,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sgep.data.entity.UserEntity
 import com.example.sgep.viewmodel.LoginViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
+/**
+ * Composable que muestra una pantalla de bienvenida para el usuario autenticado.
+ *
+ * @param user Usuario actual que se muestra inicialmente (puede ser null mientras se obtiene del ViewModel).
+ * @param viewModel ViewModel que gestiona la sesión e información del usuario.
+ * @param onLogout Callback que se ejecuta cuando el usuario decide cerrar sesión.
+ * @param modifier Modifier opcional para personalizar el layout externo.
+ */
 @Composable
 fun WelcomeScreen(
     user: UserEntity?,
@@ -25,6 +35,7 @@ fun WelcomeScreen(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Observa el estado actual del usuario desde el ViewModel, usando el ciclo de vida para evitar fugas
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
 
     Box(
@@ -32,7 +43,7 @@ fun WelcomeScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Fondo degradado consistente
+        // Fondo con un degradado vertical que va desde el color primario con baja opacidad hasta el fondo
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -53,10 +64,10 @@ fun WelcomeScreen(
                 .fillMaxSize()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header
+            // Encabezado con texto de bienvenida
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
                 Text(
                     text = "¡Bienvenido a SGEP!",
                     style = MaterialTheme.typography.headlineMedium.copy(
@@ -67,16 +78,16 @@ fun WelcomeScreen(
                 )
             }
 
-            // Espaciador para empujar el contenido al centro
+            // Espaciador que empuja el contenido principal al centro verticalmente
             Spacer(modifier = Modifier.weight(1f))
 
-            // Contenido principal centrado
+            // Sección con información del usuario (nombre y objetivo)
             UserInfoSection(user = currentUser ?: user)
 
-            // Espaciador para balancear con el botón
+            // Otro espaciador para balancear el diseño verticalmente
             Spacer(modifier = Modifier.weight(1f))
 
-            // Footer con botón
+            // Pie de pantalla con línea divisoria y botón para cerrar sesión
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -110,8 +121,17 @@ fun WelcomeScreen(
     }
 }
 
+/**
+ * Composable privado que muestra la información principal del usuario.
+ *
+ * Muestra el nombre y el objetivo del usuario dentro de una tarjeta,
+ * y un indicador de carga mientras no se dispone de la información.
+ *
+ * @param user Usuario actual o null si la información está cargando.
+ */
 @Composable
 private fun UserInfoSection(user: UserEntity?) {
+    // Nombre y objetivo con valores por defecto si son nulos o vacíos
     val nombre = user?.nombre?.takeIf { it.isNotBlank() } ?: "Usuario"
     val objetivo = user?.objetivo?.takeIf { it.isNotBlank() } ?: "Aún no has definido un objetivo"
 
@@ -121,43 +141,64 @@ private fun UserInfoSection(user: UserEntity?) {
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Tarjeta de información
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+        // Muestra la tarjeta solo si el usuario existe (animación visible/invisible)
+        AnimatedVisibility(visible = user != null) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Nombre del usuario en estilo destacado
+                    Text(
+                        text = nombre,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
-                Text(
-                    text = nombre,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+                    // Texto indicativo para el objetivo
+                    Text(
+                        text = "Tu objetivo:",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp)
+                    )
 
-                Text(
-                    text = "Tu objetivo:",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-
-                Text(
-                    text = objetivo,
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center
-                )
+                    // Objetivo del usuario con límite de líneas y texto truncado si es largo
+                    Text(
+                        text = objetivo,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
+        }
+
+        // Mientras no hay usuario, mostrar indicador de carga circular centrado
+        if (user == null) {
+            CircularProgressIndicator(modifier = Modifier.padding(32.dp))
         }
     }
 }

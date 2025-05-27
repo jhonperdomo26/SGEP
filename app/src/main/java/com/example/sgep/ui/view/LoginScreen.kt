@@ -1,6 +1,5 @@
 package com.example.sgep.ui.view
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -27,6 +26,20 @@ import com.example.sgep.data.entity.UserEntity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * Pantalla de inicio de sesión donde el usuario puede ingresar su correo electrónico y contraseña
+ * para autenticarse en la aplicación.
+ *
+ * Muestra mensajes de estado durante el proceso de inicio de sesión y permite alternar la visibilidad
+ * de la contraseña. También ofrece un botón para navegar a la pantalla de registro.
+ *
+ * @param onRegisterClick Lambda que se invoca cuando el usuario presiona el botón para
+ *                        crear una cuenta nueva, navegando a la pantalla de registro.
+ * @param onLoginSuccess Lambda que se invoca cuando el inicio de sesión es exitoso, pasando
+ *                       el objeto UserEntity correspondiente al usuario autenticado.
+ * @param viewModel Instancia de LoginViewModel que maneja la lógica de negocio relacionada
+ *                  al inicio de sesión y mantiene el estado.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -34,19 +47,22 @@ fun LoginScreen(
     onLoginSuccess: (UserEntity) -> Unit,
     viewModel: LoginViewModel
 ) {
+    // Estado local para almacenar los campos del formulario
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
+    // Observamos los estados del ViewModel para mensajes y usuario actual
     val loginMessage by viewModel.loginResult.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
 
     val coroutineScope = rememberCoroutineScope()
 
+    // Efecto que observa cambios en loginMessage y currentUser para disparar la navegación
     LaunchedEffect(loginMessage, currentUser) {
         val user = currentUser
         if (loginMessage == "Inicio de sesión exitoso" && user != null) {
-            delay(1000)
+            delay(1000) // Pequeña pausa para mostrar el mensaje antes de navegar
             onLoginSuccess(user)
         }
     }
@@ -56,7 +72,7 @@ fun LoginScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Fondo degradado
+        // Fondo degradado vertical para mejorar la estética
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -72,6 +88,7 @@ fun LoginScreen(
                 )
         )
 
+        // Contenedor principal con campos y botones
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -80,7 +97,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Título
+            // Título destacado
             Text(
                 text = "Iniciar Sesión",
                 style = MaterialTheme.typography.headlineMedium.copy(
@@ -90,7 +107,7 @@ fun LoginScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Mensaje de estado
+            // Mensaje de estado (error o éxito)
             if (loginMessage.isNotEmpty()) {
                 Text(
                     text = loginMessage,
@@ -102,6 +119,7 @@ fun LoginScreen(
                 )
             }
 
+            // Campo de correo electrónico
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -128,7 +146,7 @@ fun LoginScreen(
                     .padding(bottom = 12.dp)
             )
 
-            // Campo de contraseña
+            // Campo de contraseña con opción para mostrar/ocultar texto
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -165,7 +183,7 @@ fun LoginScreen(
                     .padding(bottom = 16.dp)
             )
 
-            // Botón de inicio de sesión
+            // Botón para iniciar sesión
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -190,7 +208,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón de registro
+            // Botón para navegar a la pantalla de registro
             OutlinedButton(
                 onClick = onRegisterClick,
                 modifier = Modifier

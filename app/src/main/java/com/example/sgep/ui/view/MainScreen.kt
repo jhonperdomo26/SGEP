@@ -29,9 +29,22 @@ sealed class Screen(val route: String, val label: String, val icon: @Composable 
     object Medidas : Screen("medidas", "Medidas", { Icon(Icons.Default.Person, contentDescription = "Medidas") })
 }
 
+/**
+ * Composable principal que representa la pantalla principal de la aplicación.
+ *
+ * Muestra una Scaffold con una barra de navegación inferior y un host de navegación para gestionar
+ * las diferentes pantallas de la app.
+ *
+ * @param userId Identificador del usuario actualmente autenticado.
+ * @param user Entidad del usuario con sus datos (puede ser nulo si no está cargado).
+ * @param loginViewModel ViewModel para la gestión de login y sesión.
+ * @param onLogout Callback que se ejecuta cuando el usuario cierra sesión.
+ * @param rutinaViewModel ViewModel para la gestión de rutinas.
+ * @param medidaCorporalViewModel ViewModel para la gestión de medidas corporales.
+ */
 @Composable
 fun MainScreen(
-    userId: Int, // ✅ Cambio 4
+    userId: Int,
     user: UserEntity?,
     loginViewModel: LoginViewModel,
     onLogout: () -> Unit,
@@ -55,6 +68,11 @@ fun MainScreen(
     }
 }
 
+/**
+ * Barra de navegación inferior que permite al usuario cambiar entre las pantallas principales.
+ *
+ * @param navController Controlador de navegación que maneja las rutas entre pantallas.
+ */
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(Screen.Inicio, Screen.Rutinas, Screen.Perfil)
@@ -79,6 +97,18 @@ fun BottomNavigationBar(navController: NavHostController) {
     }
 }
 
+/**
+ * Composable que gestiona la navegación entre las pantallas principales de la aplicación.
+ *
+ * @param navController Controlador de navegación que administra la navegación entre destinos.
+ * @param loginViewModel ViewModel encargado del manejo de la autenticación y login.
+ * @param user Entidad del usuario actual (puede ser nulo si no hay usuario logueado).
+ * @param userId Identificador único del usuario actual.
+ * @param onLogout Callback que se ejecuta al cerrar sesión.
+ * @param rutinaViewModel ViewModel encargado de la lógica relacionada con las rutinas de entrenamiento.
+ * @param medidaCorporalViewModel ViewModel encargado de la lógica relacionada con las medidas corporales del usuario.
+ * @param modifier Modificador opcional para personalizar el layout.
+ */
 @Composable
 fun NavigationHost(
     navController: NavHostController,
@@ -193,6 +223,12 @@ fun NavigationHost(
     }
 }
 
+/**
+ * Pantalla de perfil del usuario donde se presentan opciones relacionadas a la cuenta.
+ *
+ * @param onMedidasClick Lambda que se ejecuta cuando el usuario presiona el botón para
+ *                      navegar a la sección de medidas corporales.
+ */
 @Composable
 fun PerfilScreen(
     onMedidasClick: () -> Unit

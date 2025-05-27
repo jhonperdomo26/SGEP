@@ -4,7 +4,8 @@ import com.example.sgep.data.dao.*
 import com.example.sgep.data.entity.*
 
 /**
- * RutinaRepository maneja todo lo relacionado con la creación, consulta y edición de rutinas.
+ * Repositorio que maneja toda la lógica relacionada con la creación,
+ * consulta, actualización y eliminación de rutinas y sus ejercicios asociados.
  */
 class RutinaRepository(
     private val rutinaDao: RutinaDao,
@@ -12,31 +13,66 @@ class RutinaRepository(
     private val serieEjercicioDao: SerieEjercicioDao,
     private val ejercicioPredefinidoDao: EjercicioPredefinidoDao
 ) {
-    // Crear una nueva rutina para un usuario específico
+
+    /**
+     * Crea una nueva rutina para un usuario específico.
+     *
+     * @param nombre Nombre de la rutina.
+     * @param userId ID del usuario propietario de la rutina.
+     * @return ID generado de la nueva rutina.
+     */
     suspend fun crearRutina(nombre: String, userId: Int): Long =
         rutinaDao.insertRutina(RutinaEntity(nombre = nombre, userId = userId))
 
-    // Obtener todas las rutinas
+    /**
+     * Obtiene todas las rutinas almacenadas.
+     *
+     * @return Lista de todas las rutinas.
+     */
     suspend fun obtenerRutinas(): List<RutinaEntity> =
         rutinaDao.getAllRutinas()
 
-    // Obtener una rutina específica por ID
+    /**
+     * Obtiene una rutina específica por su ID.
+     *
+     * @param rutinaId ID de la rutina a buscar.
+     * @return La rutina encontrada o null si no existe.
+     */
     suspend fun obtenerRutinaPorId(rutinaId: Int): RutinaEntity? =
         rutinaDao.getRutinaById(rutinaId)
 
-    // ✅ Obtener rutinas de un usuario específico
+    /**
+     * Obtiene todas las rutinas asociadas a un usuario específico.
+     *
+     * @param userId ID del usuario.
+     * @return Lista de rutinas del usuario.
+     */
     suspend fun obtenerRutinasPorUsuario(userId: Int): List<RutinaEntity> =
         rutinaDao.getRutinasByUserId(userId)
 
-    // Eliminar una rutina
+    /**
+     * Elimina una rutina existente.
+     *
+     * @param rutina La rutina a eliminar.
+     */
     suspend fun eliminarRutina(rutina: RutinaEntity) =
         rutinaDao.deleteRutina(rutina)
 
-    // Obtener todos los ejercicios predefinidos
+    /**
+     * Obtiene todos los ejercicios predefinidos disponibles.
+     *
+     * @return Lista de ejercicios predefinidos.
+     */
     suspend fun obtenerEjerciciosPredefinidos(): List<EjercicioPredefinidoEntity> =
         ejercicioPredefinidoDao.getAll()
 
-    // Agregar un ejercicio a una rutina
+    /**
+     * Agrega un ejercicio predefinido a una rutina específica.
+     *
+     * @param rutinaId ID de la rutina.
+     * @param ejercicioPredefinidoId ID del ejercicio predefinido.
+     * @return ID generado del nuevo ejercicio agregado a la rutina.
+     */
     suspend fun agregarEjercicioARutina(rutinaId: Int, ejercicioPredefinidoId: Int): Long =
         ejercicioEnRutinaDao.insert(
             EjercicioEnRutinaEntity(
@@ -45,11 +81,25 @@ class RutinaRepository(
             )
         )
 
-    // Obtener los ejercicios de una rutina
+    /**
+     * Obtiene todos los ejercicios que forman parte de una rutina.
+     *
+     * @param rutinaId ID de la rutina.
+     * @return Lista de ejercicios en la rutina.
+     */
     suspend fun obtenerEjerciciosDeRutina(rutinaId: Int): List<EjercicioEnRutinaEntity> =
         ejercicioEnRutinaDao.getByRutinaId(rutinaId)
 
-    // Agregar una serie a un ejercicio en rutina
+    /**
+     * Agrega una serie a un ejercicio dentro de una rutina.
+     *
+     * @param ejercicioEnRutinaId ID del ejercicio dentro de la rutina.
+     * @param numeroSerie Número de la serie (orden).
+     * @param peso Peso utilizado en la serie.
+     * @param repeticiones Cantidad de repeticiones.
+     * @param descanso Tiempo de descanso en segundos entre series.
+     * @return ID generado de la nueva serie.
+     */
     suspend fun agregarSerie(
         ejercicioEnRutinaId: Int,
         numeroSerie: Int,
@@ -66,8 +116,4 @@ class RutinaRepository(
                 descanso = descanso
             )
         )
-
-    // Obtener todas las series de un ejercicio en rutina
-    suspend fun obtenerSeriesDeEjercicio(ejercicioEnRutinaId: Int): List<SerieEjercicioEntity> =
-        serieEjercicioDao.getByEjercicioEnRutinaId(ejercicioEnRutinaId)
 }
