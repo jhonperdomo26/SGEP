@@ -191,7 +191,7 @@ fun SesionEntrenamientoScreen(
                         Button(
                             onClick = { series.add(SerieUI()) },
                             modifier = Modifier
-                                .align(Alignment.End)
+                                .align(Alignment.Start)
                                 .padding(top = 8.dp)
                         ) {
                             Text("Agregar serie")
