@@ -1,5 +1,6 @@
 package com.example.sgep.ui.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sgep.data.entity.RutinaEntity
 import com.example.sgep.viewmodel.RutinaViewModel
@@ -33,7 +36,8 @@ fun RutinasScreen(
     userId: Int,
     rutinaViewModel: RutinaViewModel,
     onRutinaSeleccionada: (RutinaEntity) -> Unit,
-    onIniciarSesion: (rutinaId: Int) -> Unit
+    onIniciarSesion: (rutinaId: Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     // Estado que contiene la lista actualizada de rutinas del usuario
     val rutinas by rutinaViewModel.rutinas.collectAsState()
@@ -69,19 +73,41 @@ fun RutinasScreen(
     }
 
     Box(
-        Modifier
-            .fillMaxSize()
-            .padding(24.dp)
+        modifier = modifier.fillMaxSize()
     ) {
+
+        // Fondo degradado de abajo hacia arriba
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                            MaterialTheme.colorScheme.background
+                        ),
+                        startY = 0f,
+                        endY = 1000f
+                    )
+                )
+        )
+
         Column(
-            Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
             // Título principal
-            Text(
-                text = "Mis Rutinas",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Mis Rutinas",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 

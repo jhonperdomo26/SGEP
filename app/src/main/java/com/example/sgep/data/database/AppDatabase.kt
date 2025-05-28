@@ -26,7 +26,7 @@ import com.example.sgep.data.entity.*
         RegistroSerieSesionEntity::class,
         MedidaCorporalEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

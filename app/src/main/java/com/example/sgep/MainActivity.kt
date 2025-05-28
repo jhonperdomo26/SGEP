@@ -39,34 +39,9 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
         if (ejerciciosExistentes.isEmpty()) {
             val defaultEjercicios = listOf(
                 EjercicioPredefinidoEntity(
-                    nombre = "Sentadilla",
-                    grupoMuscular = "Piernas",
-                    descripcion = "De pie, pies a la anchura de los hombros. Baja flexionando rodillas y caderas, espalda recta."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Press de banca plano",
-                    grupoMuscular = "Pecho",
-                    descripcion = "Tumbado en banco, barra a la altura del pecho, baja y sube controladamente."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Press de banca inclinado",
-                    grupoMuscular = "Pecho",
-                    descripcion = "Tumbado en banco inclinado, barra a la altura del pecho, baja y sube controladamente."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Peso muerto",
-                    grupoMuscular = "Espalda baja y piernas",
-                    descripcion = "Barra en el suelo, espalda recta, sube usando caderas y piernas."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Press militar",
-                    grupoMuscular = "Hombros",
-                    descripcion = "De pie o sentado, empuja la barra por encima de la cabeza desde las clavículas."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Remo con barra",
-                    grupoMuscular = "Espalda",
-                    descripcion = "Inclina el torso, agarra la barra y lleva al abdomen."
+                    nombre = "Crunch abdominal",
+                    grupoMuscular = "Abdomen",
+                    descripcion = "Tumbado boca arriba, flexiona el tronco para acercar pecho a rodillas."
                 ),
                 EjercicioPredefinidoEntity(
                     nombre = "Curl de bíceps",
@@ -79,14 +54,9 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
                     descripcion = "Agarra barra con pronación, sube el mentón por encima de la barra."
                 ),
                 EjercicioPredefinidoEntity(
-                    nombre = "Crunch abdominal",
-                    grupoMuscular = "Abdomen",
-                    descripcion = "Tumbado boca arriba, flexiona el tronco para acercar pecho a rodillas."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Fondos",
-                    grupoMuscular = "Tríceps y pecho",
-                    descripcion = "Cuerpo suspendido, baja y sube flexionando codos."
+                    nombre = "Elevaciones laterales",
+                    grupoMuscular = "Hombros",
+                    descripcion = "De pie, eleva los brazos lateralmente con mancuernas."
                 ),
                 EjercicioPredefinidoEntity(
                     nombre = "Extensión de tríceps",
@@ -94,14 +64,9 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
                     descripcion = "De pie o sentado, extiende los codos con mancuerna o barra."
                 ),
                 EjercicioPredefinidoEntity(
-                    nombre = "Elevaciones laterales",
-                    grupoMuscular = "Hombros",
-                    descripcion = "De pie, eleva los brazos lateralmente con mancuernas."
-                ),
-                EjercicioPredefinidoEntity(
-                    nombre = "Zancadas",
-                    grupoMuscular = "Piernas",
-                    descripcion = "Da un paso hacia adelante y baja la rodilla trasera hacia el suelo."
+                    nombre = "Facepull",
+                    grupoMuscular = "Hombros y espalda alta",
+                    descripcion = "Jala una cuerda hacia la cara manteniendo codos altos."
                 ),
                 EjercicioPredefinidoEntity(
                     nombre = "Gemelos",
@@ -109,9 +74,122 @@ fun poblarEjerciciosPredefinidos(db: AppDatabase) {
                     descripcion = "De pie, eleva los talones manteniendo las puntas de los pies en el suelo."
                 ),
                 EjercicioPredefinidoEntity(
-                    nombre = "Facepull",
-                    grupoMuscular = "Hombros y espalda alta",
-                    descripcion = "Jala una cuerda hacia la cara manteniendo codos altos."
+                    nombre = "Peso muerto",
+                    grupoMuscular = "Espalda baja y piernas",
+                    descripcion = "Barra en el suelo, espalda recta, sube usando caderas y piernas."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Peso muerto sumo (Powerlifting)",
+                    grupoMuscular = "Piernas y espalda baja",
+                    descripcion = "Posición amplia, espalda recta, empuja el suelo con piernas y extiende caderas."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Press de banca plano",
+                    grupoMuscular = "Pecho",
+                    descripcion = "Tumbado en banco, barra a la altura del pecho, baja y sube controladamente."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Press de banca inclinado",
+                    grupoMuscular = "Pecho",
+                    descripcion = "Tumbado en banco inclinado, barra a la altura del pecho, baja y sube controladamente."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Press de banca con pausa (Powerlifting)",
+                    grupoMuscular = "Pecho y tríceps",
+                    descripcion = "Baja la barra al pecho y pausa brevemente antes de presionar hacia arriba."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Press militar",
+                    grupoMuscular = "Hombros",
+                    descripcion = "De pie o sentado, empuja la barra por encima de la cabeza desde las clavículas."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Remo con barra",
+                    grupoMuscular = "Espalda",
+                    descripcion = "Inclina el torso, agarra la barra y lleva al abdomen."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Sentadilla",
+                    grupoMuscular = "Piernas",
+                    descripcion = "De pie, pies a la anchura de los hombros. Baja flexionando rodillas y caderas, espalda recta."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Sentadilla con barra baja (Powerlifting)",
+                    grupoMuscular = "Piernas y espalda baja",
+                    descripcion = "Barra sobre deltoides posteriores, baja con control flexionando caderas y rodillas."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Zancadas",
+                    grupoMuscular = "Piernas",
+                    descripcion = "Da un paso hacia adelante y baja la rodilla trasera hacia el suelo."
+                ),
+
+                // Halterofilia (levantamiento olímpico)
+                EjercicioPredefinidoEntity(
+                    nombre = "Arranque (Halterofilia)",
+                    grupoMuscular = "Cuerpo completo",
+                    descripcion = "Levanta la barra del suelo por encima de la cabeza en un solo movimiento explosivo."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Envión (Halterofilia)",
+                    grupoMuscular = "Cuerpo completo",
+                    descripcion = "Limpia la barra al pecho y luego empuja por encima de la cabeza con fuerza."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Clean (Halterofilia)",
+                    grupoMuscular = "Piernas y espalda",
+                    descripcion = "Lleva la barra desde el suelo hasta los hombros con técnica explosiva."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Jerk (Halterofilia)",
+                    grupoMuscular = "Hombros y piernas",
+                    descripcion = "Desde los hombros, empuja la barra sobre la cabeza con un impulso de piernas."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Snatch balance (Halterofilia)",
+                    grupoMuscular = "Hombros, piernas y core",
+                    descripcion = "Desde posición de barra en espalda, baja en sentadilla atrapando la barra sobre cabeza."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Overhead squat (Halterofilia)",
+                    grupoMuscular = "Piernas, hombros y core",
+                    descripcion = "Sentadilla con barra sobre la cabeza, requiere movilidad y estabilidad."
+                ),
+                // Armwrestling (lucha de brazos)
+                EjercicioPredefinidoEntity(
+                    nombre = "Wrist curl (Armwrestling)",
+                    grupoMuscular = "Antebrazo",
+                    descripcion = "Flexiona muñecas con barra o mancuerna para fortalecer antebrazos."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Reverse wrist curl (Armwrestling)",
+                    grupoMuscular = "Antebrazo",
+                    descripcion = "Extiende muñecas contra resistencia para trabajar extensores."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Pronación con banda (Armwrestling)",
+                    grupoMuscular = "Antebrazo y muñeca",
+                    descripcion = "Rota la muñeca hacia adentro contra resistencia para mejorar fuerza rotacional."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Supinación con banda (Armwrestling)",
+                    grupoMuscular = "Antebrazo y muñeca",
+                    descripcion = "Rota la muñeca hacia afuera contra resistencia, útil para defensa en lucha de brazos."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Hammer curl (Armwrestling)",
+                    grupoMuscular = "Bíceps y braquiorradial",
+                    descripcion = "Curl con agarre neutro para trabajar bíceps y antebrazo."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Cable pull con rotación (Armwrestling)",
+                    grupoMuscular = "Bíceps y muñeca",
+                    descripcion = "Simula el gesto del armwrestling tirando de un cable con rotación interna del brazo."
+                ),
+                EjercicioPredefinidoEntity(
+                    nombre = "Toproll hold (Armwrestling)",
+                    grupoMuscular = "Antebrazo y muñeca",
+                    descripcion = "Mantén posición de toproll con banda o peso para fortalecer agarre."
                 ),
             )
             db.ejercicioPredefinidoDao().insertAll(defaultEjercicios)
